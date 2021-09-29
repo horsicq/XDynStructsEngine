@@ -48,6 +48,7 @@ XDynStructsEngine::INFO XDynStructsEngine::getInfo(qint64 nProcessId, DYNSTRUCT 
     else
     {
         result.listRecords.append(getPEB(nProcessId));
+        result.listRecords.append(getTEBs(nProcessId));
     }
 
     return result;
@@ -57,12 +58,41 @@ XDynStructsEngine::INFORECORD XDynStructsEngine::getPEB(qint64 nProcessId)
 {
     INFORECORD result={};
 
-    result.nAddress=XProcess::getPEBAddress(nProcessId);
+    QString sValue=XBinary::valueToHexOS(XProcess::getPEBAddress(nProcessId));
+
+    result.nAddress=-1;
     result.nOffset=-1;
     result.sType="PEB *";
     result.sName="pPeb";
-    result.sValue="Test";
-    result.sValueData="Test&Test";
+    result.sValue=sValue;
+    result.sValueData=QString("%1&%2").arg(sValue,"PEB");
 
     return result;
+}
+
+QList<XDynStructsEngine::INFORECORD> XDynStructsEngine::getTEBs(qint64 nProcessId)
+{
+    QList<INFORECORD> listResult;
+
+    QList<qint64> listTEBAddresses=XProcess::getTEBAddresses(nProcessId);
+
+    int nNumberOfThreads=listTEBAddresses.count();
+
+    for(int i=0;i<nNumberOfThreads;i++)
+    {
+        INFORECORD record={};
+
+        QString sValue=XBinary::valueToHexOS(listTEBAddresses.at(i));
+
+        record.nAddress=-1;
+        record.nOffset=-1;
+        record.sType="TEB *";
+        record.sName="pTeb";
+        record.sValue=sValue;
+        record.sValueData=QString("%1&%2").arg(sValue,"TEB");
+
+        listResult.append(record);
+    }
+
+    return listResult;
 }

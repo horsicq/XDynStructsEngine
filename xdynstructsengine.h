@@ -58,8 +58,8 @@ class XDynStructsEngine : public QObject
 public:
     struct INFORECORD
     {
-        qint64 nAddress;
-        qint64 nOffset; // Offset from begin; do not show if -1
+        qint64 nAddress;    // Do not show if -1
+        qint64 nOffset;     // Do not show if -1; Offset from begin
         QString sType;
         QString sName;
         QString sValue;
@@ -79,6 +79,7 @@ public:
 
 private:
     INFORECORD getPEB(qint64 nProcessId);
+    QList<INFORECORD> getTEBs(qint64 nProcessId);
 
 signals:
 
