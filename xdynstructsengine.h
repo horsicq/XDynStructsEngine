@@ -21,8 +21,12 @@
 #ifndef XDYNSTRUCTSENGINE_H
 #define XDYNSTRUCTSENGINE_H
 
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
 #include "xbinary.h"
 #include "xprocess.h"
+#include "xprocessdevice.h"
 
 class XDynStructsEngine : public QObject
 {
@@ -74,15 +78,17 @@ public:
 
     explicit XDynStructsEngine(QObject *pParent=nullptr);
 
-    INFO getInfo(QIODevice *pDevice,qint64 nOffset,DYNSTRUCT *pDynStruct=0);
-    INFO getInfo(qint64 nProcessId,DYNSTRUCT *pDynStruct=0);
+    INFO getInfo(QIODevice *pDevice,qint64 nOffset,QString sStruct);
+    INFO getInfo(qint64 nProcessId,qint64 nAddress,QString sStruct);
+
+    bool addFile(QString sFileName);
 
 private:
     INFORECORD getPEB(qint64 nProcessId);
     QList<INFORECORD> getTEBs(qint64 nProcessId);
 
-signals:
-
+private:
+    QList<DYNSTRUCT> g_listDynStructs;
 };
 
 #endif // XDYNSTRUCTSENGINE_H

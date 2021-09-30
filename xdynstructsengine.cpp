@@ -25,11 +25,11 @@ XDynStructsEngine::XDynStructsEngine(QObject *pParent) : QObject(pParent)
 
 }
 
-XDynStructsEngine::INFO XDynStructsEngine::getInfo(QIODevice *pDevice, qint64 nOffset, DYNSTRUCT *pDynStruct)
+XDynStructsEngine::INFO XDynStructsEngine::getInfo(QIODevice *pDevice, qint64 nOffset, QString sStruct)
 {
     INFO result={};
 
-    if(pDynStruct)
+    if(sStruct!="")
     {
         // TODO
     }
@@ -37,11 +37,11 @@ XDynStructsEngine::INFO XDynStructsEngine::getInfo(QIODevice *pDevice, qint64 nO
     return result;
 }
 
-XDynStructsEngine::INFO XDynStructsEngine::getInfo(qint64 nProcessId, DYNSTRUCT *pDynStruct)
+XDynStructsEngine::INFO XDynStructsEngine::getInfo(qint64 nProcessId, qint64 nAddress, QString sStruct)
 {
     INFO result={};
 
-    if(pDynStruct)
+    if(sStruct!="")
     {
         // TODO
     }
@@ -52,6 +52,39 @@ XDynStructsEngine::INFO XDynStructsEngine::getInfo(qint64 nProcessId, DYNSTRUCT 
     }
 
     return result;
+}
+
+bool XDynStructsEngine::addFile(QString sFileName)
+{
+    bool bResult=0;
+
+    QFile file;
+    file.setFileName(sFileName);
+    if(file.open(QIODevice::ReadOnly|QIODevice::Text))
+    {
+        QString sJsonData=file.readAll();
+
+        QJsonDocument jsonDocument=QJsonDocument::fromJson(sJsonData.toUtf8());
+
+        if(jsonDocument.isObject())
+        {
+            QJsonObject jsonObject=jsonDocument.object();
+            // TODO get name and info
+
+            QJsonArray jsonArray=jsonObject.value("records").toArray();
+
+            int nNumberOfRecords=jsonArray.count();
+
+            for(int i=0;i<nNumberOfRecords;i++)
+            {
+                jsonArray.at(i).toObject();
+            }
+        }
+
+        file.close();
+    }
+
+    return bResult;
 }
 
 XDynStructsEngine::INFORECORD XDynStructsEngine::getPEB(qint64 nProcessId)
