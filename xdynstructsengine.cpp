@@ -25,6 +25,38 @@ XDynStructsEngine::XDynStructsEngine(QObject *pParent) : QObject(pParent)
 
 }
 
+void XDynStructsEngine::setData(OPTIONS options)
+{
+    if(g_options.sStructsPath!=options.sStructsPath)
+    {
+        XProcess::SYSTEMINFO systemInfo=XProcess::getSystemInfo();
+        // Load structs
+        g_listDynStructs.clear();
+
+        if(options.bSystem)
+        {
+            g_listDynStructs.append(loadFile(options.sStructsPath+QDir::separator()+systemInfo.sArch+QDir::separator()+QString("%1.json").arg(systemInfo.sBuild)));
+        }
+
+        if(options.bGeneral)
+        {
+            g_listDynStructs.append(loadFile(options.sStructsPath+QDir::separator()+systemInfo.sArch+QDir::separator()+QString("general.json")));
+        }
+
+        if(options.bCustom)
+        {
+            g_listDynStructs.append(loadFile(options.sStructsPath+QDir::separator()+systemInfo.sArch+QDir::separator()+QString("custom.json")));
+        }
+    }
+
+    g_options=options;
+}
+
+XDynStructsEngine::OPTIONS XDynStructsEngine::getOptions()
+{
+    return g_options;
+}
+
 XDynStructsEngine::INFO XDynStructsEngine::getInfo(QIODevice *pDevice, qint64 nOffset, QString sStruct)
 {
     INFO result={};
@@ -54,9 +86,9 @@ XDynStructsEngine::INFO XDynStructsEngine::getInfo(qint64 nProcessId, qint64 nAd
     return result;
 }
 
-bool XDynStructsEngine::addFile(QString sFileName)
+QList<XDynStructsEngine::DYNSTRUCT> XDynStructsEngine::loadFile(QString sFileName)
 {
-    bool bResult=0;
+    QList<DYNSTRUCT> listResult;
 
     QFile file;
     file.setFileName(sFileName);
@@ -83,8 +115,14 @@ bool XDynStructsEngine::addFile(QString sFileName)
 
         file.close();
     }
+    else
+    {
+    #ifdef QT_DEBUG
+        qDebug("Cannot load file: %s",sFileName.toLatin1().data());
+    #endif
+    }
 
-    return bResult;
+    return listResult;
 }
 
 XDynStructsEngine::INFORECORD XDynStructsEngine::getPEB(qint64 nProcessId)
@@ -95,10 +133,10 @@ XDynStructsEngine::INFORECORD XDynStructsEngine::getPEB(qint64 nProcessId)
 
     result.nAddress=-1;
     result.nOffset=-1;
-    result.sType="PEB *";
+    result.sType="struct PEB *";
     result.sName="pPeb";
     result.sValue=sValue;
-    result.sValueData=QString("%1&%2").arg(sValue,"PEB");
+    result.sValueData=QString("%1&%2").arg(sValue,"struct PEB");
 
     return result;
 }
@@ -119,10 +157,10 @@ QList<XDynStructsEngine::INFORECORD> XDynStructsEngine::getTEBs(qint64 nProcessI
 
         record.nAddress=-1;
         record.nOffset=-1;
-        record.sType="TEB *";
+        record.sType="struct TEB *";
         record.sName="pTeb";
         record.sValue=sValue;
-        record.sValueData=QString("%1&%2").arg(sValue,"TEB");
+        record.sValueData=QString("%1&%2").arg(sValue,"struct TEB");
 
         listResult.append(record);
     }

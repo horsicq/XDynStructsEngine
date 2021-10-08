@@ -60,6 +60,17 @@ class XDynStructsEngine : public QObject
     };
 
 public:
+    struct OPTIONS
+    {
+        QIODevice *pDevice;
+        qint64 nProcessId;
+        qint64 nAddress; // Offset from begin if pDevice
+        QString sStructsPath;
+        bool bSystem;
+        bool bGeneral;
+        bool bCustom;
+    };
+
     struct INFORECORD
     {
         qint64 nAddress;    // Do not show if -1
@@ -78,10 +89,14 @@ public:
 
     explicit XDynStructsEngine(QObject *pParent=nullptr);
 
+    void setData(OPTIONS options);
+
+    OPTIONS getOptions();
+
     INFO getInfo(QIODevice *pDevice,qint64 nOffset,QString sStruct);
     INFO getInfo(qint64 nProcessId,qint64 nAddress,QString sStruct);
 
-    bool addFile(QString sFileName);
+    QList<DYNSTRUCT> loadFile(QString sFileName);
 
 private:
     INFORECORD getPEB(qint64 nProcessId);
@@ -89,6 +104,7 @@ private:
 
 private:
     QList<DYNSTRUCT> g_listDynStructs;
+    OPTIONS g_options;
 };
 
 #endif // XDYNSTRUCTSENGINE_H
