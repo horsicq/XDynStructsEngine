@@ -79,8 +79,10 @@ XDynStructsEngine::INFO XDynStructsEngine::getInfo(qint64 nProcessId, qint64 nAd
     }
     else
     {
+    #ifdef Q_OS_WIN
         result.listRecords.append(getPEB(nProcessId));
         result.listRecords.append(getTEBs(nProcessId));
+    #endif
     }
 
     return result;
@@ -124,7 +126,7 @@ QList<XDynStructsEngine::DYNSTRUCT> XDynStructsEngine::loadFile(QString sFileNam
 
     return listResult;
 }
-
+#ifdef Q_OS_WIN
 XDynStructsEngine::INFORECORD XDynStructsEngine::getPEB(qint64 nProcessId)
 {
     INFORECORD result={};
@@ -140,7 +142,8 @@ XDynStructsEngine::INFORECORD XDynStructsEngine::getPEB(qint64 nProcessId)
 
     return result;
 }
-
+#endif
+#ifdef Q_OS_WIN
 QList<XDynStructsEngine::INFORECORD> XDynStructsEngine::getTEBs(qint64 nProcessId)
 {
     QList<INFORECORD> listResult;
@@ -167,3 +170,4 @@ QList<XDynStructsEngine::INFORECORD> XDynStructsEngine::getTEBs(qint64 nProcessI
 
     return listResult;
 }
+#endif

@@ -99,8 +99,10 @@ public:
     QList<DYNSTRUCT> loadFile(QString sFileName);
 
 private:
+#ifdef Q_OS_WIN
     INFORECORD getPEB(qint64 nProcessId);
     QList<INFORECORD> getTEBs(qint64 nProcessId);
+#endif
 
 private:
     QList<DYNSTRUCT> g_listDynStructs;
