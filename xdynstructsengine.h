@@ -32,13 +32,21 @@ class XDynStructsEngine : public QObject
 {
     Q_OBJECT
 
-    enum VT
+public:
+    struct OPTIONS
     {
-        VT_AUTO=0,
-        VT_NONE,
-        VT_VARIABLE,
-        VT_POINTER,
-        VT_ARRAY
+        bool bSystem;
+        bool bGeneral;
+        bool bCustom;
+    };
+
+    enum POSTYPE
+    {
+        POSTYPE_AUTO=0,
+        POSTYPE_NONE,
+        POSTYPE_VARIABLE,
+        POSTYPE_POINTER,
+        POSTYPE_ARRAY
     };
 
     struct DSPOSITION
@@ -47,28 +55,16 @@ class XDynStructsEngine : public QObject
         qint64 nSize;
         QString sName;
         QString sType;
-        VT vt;
+        POSTYPE posType;
     };
 
     struct DYNSTRUCT
     {
         QString sIUID;
         QString sName;
-        QString sInfo;
+        QString sInfoFile;
         qint64 nSize;
         QList<DSPOSITION> listPositions;
-    };
-
-public:
-    struct OPTIONS
-    {
-        QIODevice *pDevice;
-        qint64 nProcessId;
-        qint64 nAddress; // Offset from begin if pDevice
-        QString sStructsPath;
-        bool bSystem;
-        bool bGeneral;
-        bool bCustom;
     };
 
     struct INFORECORD
@@ -84,19 +80,22 @@ public:
 
     struct INFO
     {
+        bool bIsValid;
         QList<INFORECORD> listRecords;
     };
 
     explicit XDynStructsEngine(QObject *pParent=nullptr);
 
-    void setData(OPTIONS options);
+    void setStructsPath(QString sStructsPath,OPTIONS options);
+    void setProcessId(qint64 nProcessId);
+    void setDevice(QIODevice *pDevice);
 
-    OPTIONS getOptions();
+    qint64 getProcessId();
+    QIODevice *getDevice();
 
-    INFO getInfo(QIODevice *pDevice,qint64 nOffset,QString sStruct);
-    INFO getInfo(qint64 nProcessId,qint64 nAddress,QString sStruct);
-
+    INFO getInfo(qint64 nAddress,QString sName);
     QList<DYNSTRUCT> loadFile(QString sFileName);
+    QList<DYNSTRUCT> *getStructs();
 
 private:
 #ifdef Q_OS_WIN
@@ -107,6 +106,9 @@ private:
 private:
     QList<DYNSTRUCT> g_listDynStructs;
     OPTIONS g_options;
+    QIODevice *g_pDevice;
+    qint64 g_nProcessId;
+    QString g_sStructsPath;
 };
 
 #endif // XDYNSTRUCTSENGINE_H

@@ -22,12 +22,13 @@
 
 XDynStructsEngine::XDynStructsEngine(QObject *pParent) : QObject(pParent)
 {
-
+    g_nProcessId=0;
+    g_pDevice=nullptr;
 }
 
-void XDynStructsEngine::setData(OPTIONS options)
+void XDynStructsEngine::setStructsPath(QString sStructsPath, OPTIONS options)
 {
-    if(g_options.sStructsPath!=options.sStructsPath)
+    if(sStructsPath!=g_sStructsPath)
     {
         XProcess::SYSTEMINFO systemInfo=XProcess::getSystemInfo();
         // Load structs
@@ -35,54 +36,99 @@ void XDynStructsEngine::setData(OPTIONS options)
 
         if(options.bSystem)
         {
-            g_listDynStructs.append(loadFile(options.sStructsPath+QDir::separator()+systemInfo.sArch+QDir::separator()+QString("%1.json").arg(systemInfo.sBuild)));
+            g_listDynStructs.append(loadFile(sStructsPath+QDir::separator()+systemInfo.sArch+QDir::separator()+QString("%1.json").arg(systemInfo.sBuild)));
         }
 
         if(options.bGeneral)
         {
-            g_listDynStructs.append(loadFile(options.sStructsPath+QDir::separator()+systemInfo.sArch+QDir::separator()+QString("general.json")));
+            g_listDynStructs.append(loadFile(sStructsPath+QDir::separator()+systemInfo.sArch+QDir::separator()+QString("general.json")));
         }
 
         if(options.bCustom)
         {
-            g_listDynStructs.append(loadFile(options.sStructsPath+QDir::separator()+systemInfo.sArch+QDir::separator()+QString("custom.json")));
+            g_listDynStructs.append(loadFile(sStructsPath+QDir::separator()+systemInfo.sArch+QDir::separator()+QString("custom.json")));
         }
     }
 
-    g_options=options;
+    g_sStructsPath=sStructsPath;
 }
 
-XDynStructsEngine::OPTIONS XDynStructsEngine::getOptions()
+void XDynStructsEngine::setProcessId(qint64 nProcessId)
 {
-    return g_options;
+    g_nProcessId=nProcessId;
 }
 
-XDynStructsEngine::INFO XDynStructsEngine::getInfo(QIODevice *pDevice, qint64 nOffset, QString sStruct)
+void XDynStructsEngine::setDevice(QIODevice *pDevice)
+{
+    g_pDevice=pDevice;
+}
+
+qint64 XDynStructsEngine::getProcessId()
+{
+    return g_nProcessId;
+}
+
+QIODevice *XDynStructsEngine::getDevice()
+{
+    return g_pDevice;
+}
+
+XDynStructsEngine::INFO XDynStructsEngine::getInfo(qint64 nAddress, QString sName)
 {
     INFO result={};
 
-    if(sStruct!="")
+    if(sName!="")
     {
-        // TODO
-    }
+        int nNumberOfStructs=g_listDynStructs.count();
 
-    return result;
-}
+        DYNSTRUCT dynStruct={};
 
-XDynStructsEngine::INFO XDynStructsEngine::getInfo(qint64 nProcessId, qint64 nAddress, QString sStruct)
-{
-    INFO result={};
+        for(int i=0;i<nNumberOfStructs;i++)
+        {
+            if(g_listDynStructs.at(i).sName==sName)
+            {
+                dynStruct=g_listDynStructs.at(i);
 
-    if(sStruct!="")
-    {
-        // TODO
+                break;
+            }
+        }
+
+        if(dynStruct.sIUID!="")
+        {
+            result.bIsValid=true;
+
+            int nNumberOfPositions=dynStruct.listPositions.count();
+
+            for(int i=0;i<nNumberOfPositions;i++)
+            {
+                INFORECORD infoRecord={};
+
+                DSPOSITION position=dynStruct.listPositions.at(i);
+
+                infoRecord.nAddress=nAddress+position.nOffset;
+                infoRecord.nOffset=position.nOffset;
+                infoRecord.sType=position.sType;
+                infoRecord.sName=position.sName;
+
+                if(position.posType==POSTYPE_VARIABLE)
+                {
+
+                }
+
+                result.listRecords.append(infoRecord);
+            }
+        }
     }
     else
     {
-    #ifdef Q_OS_WIN
-        result.listRecords.append(getPEB(nProcessId));
-        result.listRecords.append(getTEBs(nProcessId));
-    #endif
+        if(g_nProcessId)
+        {
+        #ifdef Q_OS_WIN
+            result.bIsValid=true;
+            result.listRecords.append(getPEB(g_nProcessId));
+            result.listRecords.append(getTEBs(g_nProcessId));
+        #endif
+        }
     }
 
     return result;
@@ -105,13 +151,42 @@ QList<XDynStructsEngine::DYNSTRUCT> XDynStructsEngine::loadFile(QString sFileNam
             QJsonObject jsonObject=jsonDocument.object();
             // TODO get name and info
 
-            QJsonArray jsonArray=jsonObject.value("records").toArray();
+            QJsonArray jsonStructsArray=jsonObject.value("structs").toArray();
 
-            int nNumberOfRecords=jsonArray.count();
+            int nNumberOfStructs=jsonStructsArray.count();
 
-            for(int i=0;i<nNumberOfRecords;i++)
+            for(int i=0;i<nNumberOfStructs;i++)
             {
-                jsonArray.at(i).toObject();
+                DYNSTRUCT record={};
+
+                QJsonObject jsonStruct=jsonStructsArray.at(i).toObject();
+
+                record.sIUID=XBinary::generateUUID(); // TODO Check
+                record.sName=jsonStruct.value("name").toString();
+                record.nSize=jsonStruct.value("size").toInt();
+                record.sInfoFile=jsonStruct.value("infofile").toString();
+
+                QJsonArray jsonPositionsArray=jsonStruct.value("positions").toArray();
+
+                int nNumberOfPositions=jsonPositionsArray.count();
+
+                for(int j=0;j<nNumberOfPositions;j++)
+                {
+                    DSPOSITION position={};
+
+                    QJsonObject jsonPosition=jsonPositionsArray.at(j).toObject();
+
+                    position.sName=jsonPosition.value("name").toString();
+                    position.sType=jsonPosition.value("type").toString();
+                    position.nOffset=jsonPosition.value("offset").toInt();
+                    position.nSize=jsonPosition.value("size").toInt();
+
+                    // TODO VT
+
+                    record.listPositions.append(position);
+                }
+
+                listResult.append(record);
             }
         }
 
@@ -126,6 +201,11 @@ QList<XDynStructsEngine::DYNSTRUCT> XDynStructsEngine::loadFile(QString sFileNam
 
     return listResult;
 }
+
+QList<XDynStructsEngine::DYNSTRUCT> *XDynStructsEngine::getStructs()
+{
+    return &g_listDynStructs;
+}
 #ifdef Q_OS_WIN
 XDynStructsEngine::INFORECORD XDynStructsEngine::getPEB(qint64 nProcessId)
 {
@@ -135,10 +215,10 @@ XDynStructsEngine::INFORECORD XDynStructsEngine::getPEB(qint64 nProcessId)
 
     result.nAddress=-1;
     result.nOffset=-1;
-    result.sType="struct PEB *";
+    result.sType="struct _PEB *";
     result.sName="pPeb";
     result.sValue=sValue;
-    result.sValueData=QString("%1&%2").arg(sValue,"struct PEB");
+    result.sValueData=QString("%1&%2").arg(sValue,"struct _PEB");
 
     return result;
 }
@@ -160,10 +240,10 @@ QList<XDynStructsEngine::INFORECORD> XDynStructsEngine::getTEBs(qint64 nProcessI
 
         record.nAddress=-1;
         record.nOffset=-1;
-        record.sType="struct TEB *";
+        record.sType="struct _TEB *";
         record.sName="pTeb";
         record.sValue=sValue;
-        record.sValueData=QString("%1&%2").arg(sValue,"struct TEB");
+        record.sValueData=QString("%1&%2").arg(sValue,"struct _TEB");
 
         listResult.append(record);
     }
