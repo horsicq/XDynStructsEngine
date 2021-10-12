@@ -16,3 +16,8 @@ SOURCES += \
     XCONFIG += xprocess
     include($$PWD/../XProcess/xprocess.pri)
 }
+
+!contains(XCONFIG, dialogtextinfo) {
+    XCONFIG += dialogtextinfo
+    include($$PWD/../FormatDialogs/dialogtextinfo.pri)
+}

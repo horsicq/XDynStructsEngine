@@ -53,6 +53,8 @@ public:
     {
         qint64 nOffset;
         qint64 nSize;
+        qint32 nBitOffset;
+        qint32 nBitSize;
         QString sName;
         QString sType;
         POSTYPE posType;
@@ -96,12 +98,18 @@ public:
     INFO getInfo(qint64 nAddress,QString sName);
     QList<DYNSTRUCT> loadFile(QString sFileName);
     QList<DYNSTRUCT> *getStructs();
+    QString getValue(void *pProcess,XBinary *pBinary,qint64 nAddress,DSPOSITION position);
+
+    DYNSTRUCT getDynStructByName(QString sName);
 
 private:
 #ifdef Q_OS_WIN
     INFORECORD getPEB(qint64 nProcessId);
     QList<INFORECORD> getTEBs(qint64 nProcessId);
 #endif
+
+signals:
+    void errorMessage(QString sErrorMessage);
 
 private:
     QList<DYNSTRUCT> g_listDynStructs;

@@ -79,19 +79,20 @@ XDynStructsEngine::INFO XDynStructsEngine::getInfo(qint64 nAddress, QString sNam
 
     if(sName!="")
     {
-        int nNumberOfStructs=g_listDynStructs.count();
+        // TODO QIODevice
+        void *pHandle=nullptr;
+        XBinary *pBinary=nullptr;
 
-        DYNSTRUCT dynStruct={};
-
-        for(int i=0;i<nNumberOfStructs;i++)
+        if(g_nProcessId)
         {
-            if(g_listDynStructs.at(i).sName==sName)
-            {
-                dynStruct=g_listDynStructs.at(i);
-
-                break;
-            }
+            pHandle=XProcess::openProcess(g_nProcessId);
         }
+        else if(g_pDevice)
+        {
+            pBinary=new XBinary(g_pDevice);
+        }
+
+        DYNSTRUCT dynStruct=getDynStructByName(sName);
 
         if(dynStruct.sIUID!="")
         {
@@ -110,13 +111,19 @@ XDynStructsEngine::INFO XDynStructsEngine::getInfo(qint64 nAddress, QString sNam
                 infoRecord.sType=position.sType;
                 infoRecord.sName=position.sName;
 
-                if(position.posType==POSTYPE_VARIABLE)
-                {
-
-                }
+                infoRecord.sValue=getValue(pHandle,pBinary,nAddress,position);
 
                 result.listRecords.append(infoRecord);
             }
+        }
+
+        if(pHandle)
+        {
+            XProcess::closeProcess(pHandle);
+        }
+        else if(g_pDevice)
+        {
+            delete pBinary;
         }
     }
     else
@@ -148,8 +155,12 @@ QList<XDynStructsEngine::DYNSTRUCT> XDynStructsEngine::loadFile(QString sFileNam
 
         if(jsonDocument.isObject())
         {
+            QFileInfo fileInfo(sFileName);
+
             QJsonObject jsonObject=jsonDocument.object();
-            // TODO get name and info
+
+            QString sGlobalName=jsonObject.value("name").toString();
+            QString sFilePrefix=fileInfo.absolutePath()+QDir::separator()+sGlobalName+QDir::separator();
 
             QJsonArray jsonStructsArray=jsonObject.value("structs").toArray();
 
@@ -164,7 +175,13 @@ QList<XDynStructsEngine::DYNSTRUCT> XDynStructsEngine::loadFile(QString sFileNam
                 record.sIUID=XBinary::generateUUID(); // TODO Check
                 record.sName=jsonStruct.value("name").toString();
                 record.nSize=jsonStruct.value("size").toInt();
-                record.sInfoFile=jsonStruct.value("infofile").toString();
+
+                QString sInfoFile=jsonStruct.value("infofile").toString();
+
+                if(sInfoFile!="")
+                {
+                    record.sInfoFile=sFilePrefix+sInfoFile;
+                }
 
                 QJsonArray jsonPositionsArray=jsonStruct.value("positions").toArray();
 
@@ -180,8 +197,24 @@ QList<XDynStructsEngine::DYNSTRUCT> XDynStructsEngine::loadFile(QString sFileNam
                     position.sType=jsonPosition.value("type").toString();
                     position.nOffset=jsonPosition.value("offset").toInt();
                     position.nSize=jsonPosition.value("size").toInt();
+                    position.nBitOffset=jsonPosition.value("bitoffset").toInt();
+                    position.nBitSize=jsonPosition.value("bitsize").toInt();
 
-                    // TODO VT
+                    if(position.sName.contains("["))
+                    {
+                        position.posType=POSTYPE_ARRAY;
+                    }
+                    else if(position.sType.contains("*"))
+                    {
+                        position.posType=POSTYPE_POINTER;
+                    }
+                    else if((position.sType=="unsigned char")||
+                            (position.sType=="unsigned short")||
+                            (position.sType=="unsigned long")||
+                            (position.sType=="unsigned long long"))
+                    {
+                        position.posType=POSTYPE_VARIABLE;
+                    }
 
                     record.listPositions.append(position);
                 }
@@ -197,6 +230,7 @@ QList<XDynStructsEngine::DYNSTRUCT> XDynStructsEngine::loadFile(QString sFileNam
     #ifdef QT_DEBUG
         qDebug("Cannot load file: %s",sFileName.toLatin1().data());
     #endif
+        emit errorMessage(QString("%1: %2").arg(tr("Cannot load file"),sFileName));
     }
 
     return listResult;
@@ -206,12 +240,110 @@ QList<XDynStructsEngine::DYNSTRUCT> *XDynStructsEngine::getStructs()
 {
     return &g_listDynStructs;
 }
+
+QString XDynStructsEngine::getValue(void *pProcess, XBinary *pBinary, qint64 nAddress, DSPOSITION position)
+{
+    // TODO Endian
+    QString sResult;
+
+    if((position.posType==POSTYPE_VARIABLE)||(position.posType==POSTYPE_POINTER))
+    {
+        if(position.nSize==1)
+        {
+            quint8 nValue=0;
+
+            if(pProcess)
+            {
+                nValue=XProcess::read_uint8(pProcess,nAddress+position.nOffset);
+            }
+            else if(pBinary)
+            {
+                nValue=pBinary->read_uint8(nAddress+position.nOffset);
+            }
+
+            sResult="0x"+XBinary::valueToHex(nValue);
+        }
+        else if(position.nSize==2)
+        {
+            quint16 nValue=0;
+
+            if(pProcess)
+            {
+                nValue=XProcess::read_uint16(pProcess,nAddress+position.nOffset);
+            }
+            else if(pBinary)
+            {
+                nValue=pBinary->read_uint16(nAddress+position.nOffset);
+            }
+
+            sResult="0x"+XBinary::valueToHex(nValue);
+        }
+        else if(position.nSize==4)
+        {
+            quint32 nValue=0;
+
+            if(pProcess)
+            {
+                nValue=XProcess::read_uint32(pProcess,nAddress+position.nOffset);
+            }
+            else if(pBinary)
+            {
+                nValue=pBinary->read_uint32(nAddress+position.nOffset);
+            }
+
+            sResult="0x"+XBinary::valueToHex(nValue);
+        }
+        else if(position.nSize==8)
+        {
+            quint64 nValue=0;
+
+            if(pProcess)
+            {
+                nValue=XProcess::read_uint64(pProcess,nAddress+position.nOffset);
+            }
+            else if(pBinary)
+            {
+                nValue=pBinary->read_uint64(nAddress+position.nOffset);
+            }
+
+            sResult="0x"+XBinary::valueToHex(nValue);
+        }
+    }
+    else
+    {
+        sResult="...";
+    }
+
+    return sResult;
+}
+
+XDynStructsEngine::DYNSTRUCT XDynStructsEngine::getDynStructByName(QString sName)
+{
+    DYNSTRUCT result={};
+
+    if(sName!="")
+    {
+        int nNumberOfStructs=g_listDynStructs.count();
+
+        for(int i=0;i<nNumberOfStructs;i++)
+        {
+            if(g_listDynStructs.at(i).sName==sName)
+            {
+                result=g_listDynStructs.at(i);
+
+                break;
+            }
+        }
+    }
+
+    return result;
+}
 #ifdef Q_OS_WIN
 XDynStructsEngine::INFORECORD XDynStructsEngine::getPEB(qint64 nProcessId)
 {
     INFORECORD result={};
 
-    QString sValue=XBinary::valueToHexOS(XProcess::getPEBAddress(nProcessId));
+    QString sValue="0x"+XBinary::valueToHexOS(XProcess::getPEBAddress(nProcessId));
 
     result.nAddress=-1;
     result.nOffset=-1;
@@ -236,7 +368,7 @@ QList<XDynStructsEngine::INFORECORD> XDynStructsEngine::getTEBs(qint64 nProcessI
     {
         INFORECORD record={};
 
-        QString sValue=XBinary::valueToHexOS(listTEBAddresses.at(i));
+        QString sValue="0x"+XBinary::valueToHexOS(listTEBAddresses.at(i));
 
         record.nAddress=-1;
         record.nOffset=-1;
