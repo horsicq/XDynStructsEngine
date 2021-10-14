@@ -58,6 +58,8 @@ public:
         QString sName;
         QString sType;
         POSTYPE posType;
+        qint32 nArrayCount;
+        qint32 nArrayRecordSize;
     };
 
     struct DYNSTRUCT
@@ -98,7 +100,7 @@ public:
     INFO getInfo(qint64 nAddress,QString sName);
     QList<DYNSTRUCT> loadFile(QString sFileName);
     QList<DYNSTRUCT> *getStructs();
-    QString getValue(void *pProcess,XBinary *pBinary,qint64 nAddress,DSPOSITION position);
+    QString getValue(void *pProcess,XBinary *pBinary,qint64 nAddress,qint64 nSize,POSTYPE posType,qint32 nBitOffset,qint32 nBitSize);
 
     DYNSTRUCT getDynStructByName(QString sName);
 
