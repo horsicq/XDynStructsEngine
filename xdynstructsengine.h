@@ -40,13 +40,13 @@ public:
         bool bCustom;
     };
 
-    enum POSTYPE
+    enum RECORDTYPE
     {
-        POSTYPE_AUTO=0,
-        POSTYPE_NONE,
-        POSTYPE_VARIABLE,
-        POSTYPE_POINTER,
-        POSTYPE_ARRAY
+        RECORDTYPE_AUTO=0,
+        RECORDTYPE_NONE,
+        RECORDTYPE_VARIABLE,
+        RECORDTYPE_POINTER,
+        RECORDTYPE_ARRAY
     };
 
     struct DSPOSITION
@@ -57,9 +57,8 @@ public:
         qint32 nBitSize;
         QString sName;
         QString sType;
-        POSTYPE posType;
+        RECORDTYPE recordType;
         qint32 nArrayCount;
-        qint32 nArrayRecordSize;
     };
 
     struct DYNSTRUCT
@@ -68,6 +67,7 @@ public:
         QString sName;
         QString sInfoFile;
         qint64 nSize;
+        RECORDTYPE recordType;
         QList<DSPOSITION> listPositions;
     };
 
@@ -88,6 +88,12 @@ public:
         QList<INFORECORD> listRecords;
     };
 
+    enum STRUCTTYPE
+    {
+        STRUCTTYPE_VARIABLE=0,
+        STRUCTTYPE_POINTER
+    };
+
     explicit XDynStructsEngine(QObject *pParent=nullptr);
 
     void setStructsPath(QString sStructsPath,OPTIONS options);
@@ -97,12 +103,15 @@ public:
     qint64 getProcessId();
     QIODevice *getDevice();
 
-    INFO getInfo(qint64 nAddress,QString sName);
+    INFO getInfo(qint64 nAddress,QString sStructName,STRUCTTYPE structType,qint32 nCount);
     QList<DYNSTRUCT> loadFile(QString sFileName);
     QList<DYNSTRUCT> *getStructs();
-    QString getValue(void *pProcess,XBinary *pBinary,qint64 nAddress,qint64 nSize,POSTYPE posType,qint32 nBitOffset,qint32 nBitSize);
+    QString getValue(void *pProcess,XBinary *pBinary,qint64 nAddress,qint64 nSize,RECORDTYPE recordType,qint32 nBitOffset,qint32 nBitSize);
+    QString getValueData(qint64 nAddress,RECORDTYPE recordType,QString sType,QString sValue,qint32 nArrayCount);
 
     DYNSTRUCT getDynStructByName(QString sName);
+
+    static RECORDTYPE getRecordType(QString sType);
 
 private:
 #ifdef Q_OS_WIN

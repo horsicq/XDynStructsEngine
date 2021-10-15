@@ -83,13 +83,12 @@ QIODevice *XDynStructsEngine::getDevice()
     return g_pDevice;
 }
 
-XDynStructsEngine::INFO XDynStructsEngine::getInfo(qint64 nAddress, QString sName)
+XDynStructsEngine::INFO XDynStructsEngine::getInfo(qint64 nAddress, QString sStructName, STRUCTTYPE structType, qint32 nCount)
 {
     INFO result={};
 
-    if(sName!="")
+    if(sStructName!="")
     {
-        // TODO QIODevice
         void *pHandle=nullptr;
         XBinary *pBinary=nullptr;
 
@@ -102,82 +101,73 @@ XDynStructsEngine::INFO XDynStructsEngine::getInfo(qint64 nAddress, QString sNam
             pBinary=new XBinary(g_pDevice);
         }
 
-        DYNSTRUCT dynStruct=getDynStructByName(sName);
+        if(structType==STRUCTTYPE_VARIABLE)
+        {
+            DYNSTRUCT dynStruct=getDynStructByName(sStructName);
 
-        if(dynStruct.sIUID!="")
+            if(dynStruct.sIUID!="")
+            {
+                result.bIsValid=true;
+
+                if(nCount<=1)
+                {
+                    int nNumberOfPositions=dynStruct.listPositions.count();
+
+                    for(int i=0;i<nNumberOfPositions;i++)
+                    {
+                        DSPOSITION position=dynStruct.listPositions.at(i);
+
+                        INFORECORD infoRecord={};
+
+                        infoRecord.nOffset=position.nOffset;
+                        infoRecord.nAddress=nAddress+infoRecord.nOffset;
+                        infoRecord.sType=position.sType;
+                        infoRecord.sName=position.sName;
+
+                        infoRecord.sValue=getValue(pHandle,pBinary,infoRecord.nAddress,position.nSize,position.recordType,position.nBitOffset,position.nBitSize);
+                        infoRecord.sValueData=getValueData(infoRecord.nAddress,position.recordType,position.sType,infoRecord.sValue,position.nArrayCount);
+
+                        result.listRecords.append(infoRecord);
+                    }
+                }
+                else
+                {
+                    for(int i=0;i<nCount;i++)
+                    {
+                        INFORECORD infoRecord={};
+
+                        infoRecord.nOffset=i*dynStruct.nSize;
+                        infoRecord.nAddress=nAddress+infoRecord.nOffset;
+                        infoRecord.sType=dynStruct.sName;
+                        infoRecord.sName=QString("Value[%1]").arg(i); // mb TODO translate
+
+                        infoRecord.sValue=getValue(pHandle,pBinary,infoRecord.nAddress,dynStruct.nSize,dynStruct.recordType,0,0);
+                        infoRecord.sValueData=getValueData(infoRecord.nAddress,dynStruct.recordType,infoRecord.sType,infoRecord.sValue,1);
+
+                        result.listRecords.append(infoRecord);
+                    }
+                }
+            }
+        }
+        else if(structType==STRUCTTYPE_POINTER)
         {
             result.bIsValid=true;
 
-            int nNumberOfPositions=dynStruct.listPositions.count();
+            qint32 nPointerSize=sizeof(void *);
 
-            for(int i=0;i<nNumberOfPositions;i++)
+            for(int i=0;i<nCount;i++)
             {
-                DSPOSITION position=dynStruct.listPositions.at(i);
-
                 INFORECORD infoRecord={};
 
-                infoRecord.nOffset=position.nOffset;
+                infoRecord.nOffset=i*nPointerSize;
                 infoRecord.nAddress=nAddress+infoRecord.nOffset;
-                infoRecord.sType=position.sType;
-                infoRecord.sName=position.sName;
+                infoRecord.sType=sStructName+" *";
+                infoRecord.sName=QString("Value[%1]").arg(i); // mb TODO translate
 
-//                    if(position.bIsArray)
-//                    {
-//                        infoRecord.sName=position.sName.section("[",0,-2)+QString("[%1]").arg(j);
-//                    }
-//                    else
-//                    {
-//                        infoRecord.sName=position.sName;
-//                    }
-
-                infoRecord.sValue=getValue(pHandle,pBinary,infoRecord.nAddress,position.nSize/position.nArrayCount,position.posType,position.nBitOffset,position.nBitSize);
-
-                if(position.posType==POSTYPE_POINTER)
-                {
-                    QString sType=position.sType.section("*",0,-2).trimmed();
-                    infoRecord.sValueData=QString("%1&%2").arg(infoRecord.sValue,sType);
-                }
-                else if(position.posType==POSTYPE_AUTO)
-                {
-                    QString sType=position.sType;
-                    infoRecord.sValueData=QString("0x%1&%2").arg(XBinary::valueToHex(infoRecord.nAddress),sType);
-                }
+                infoRecord.sValue=getValue(pHandle,pBinary,infoRecord.nAddress,nPointerSize,RECORDTYPE_POINTER,0,0);
+                infoRecord.sValueData=getValueData(infoRecord.nAddress,RECORDTYPE_POINTER,infoRecord.sType,infoRecord.sValue,1);
 
                 result.listRecords.append(infoRecord);
-
-//                for(int j=0;j<position.nArrayCount;j++)
-//                {
-//                    INFORECORD infoRecord={};
-
-//                    infoRecord.nOffset=position.nOffset+(position.nSize/position.nArrayCount)*j;
-//                    infoRecord.nAddress=nAddress+infoRecord.nOffset;
-//                    infoRecord.sType=position.sType;
-//                    infoRecord.sName=position.sName;
-
-////                    if(position.bIsArray)
-////                    {
-////                        infoRecord.sName=position.sName.section("[",0,-2)+QString("[%1]").arg(j);
-////                    }
-////                    else
-////                    {
-////                        infoRecord.sName=position.sName;
-////                    }
-
-//                    infoRecord.sValue=getValue(pHandle,pBinary,infoRecord.nAddress,position.nSize/position.nArrayCount,position.posType,position.nBitOffset,position.nBitSize);
-
-//                    if(position.posType==POSTYPE_POINTER)
-//                    {
-//                        QString sType=position.sType.section("*",0,-2).trimmed();
-//                        infoRecord.sValueData=QString("%1&%2").arg(infoRecord.sValue,sType);
-//                    }
-//                    else if(position.posType==POSTYPE_AUTO)
-//                    {
-//                        QString sType=position.sType;
-//                        infoRecord.sValueData=QString("0x%1&%2").arg(XBinary::valueToHex(infoRecord.nAddress),sType);
-//                    }
-
-//                    result.listRecords.append(infoRecord);
-//                }
             }
         }
 
@@ -239,6 +229,7 @@ QList<XDynStructsEngine::DYNSTRUCT> XDynStructsEngine::loadFile(QString sFileNam
                 record.sIUID=XBinary::generateUUID(); // TODO Check
                 record.sName=jsonStruct.value("name").toString();
                 record.nSize=jsonStruct.value("size").toInt();
+                record.recordType=getRecordType(record.sName);
 
                 QString sInfoFile=jsonStruct.value("infofile").toString();
 
@@ -261,33 +252,25 @@ QList<XDynStructsEngine::DYNSTRUCT> XDynStructsEngine::loadFile(QString sFileNam
                     qint64 nSize=jsonPosition.value("size").toInt();
                     qint32 nBitOffset=jsonPosition.value("bitoffset").toInt();
                     qint32 nBitSize=jsonPosition.value("bitsize").toInt();
-                    POSTYPE posType=POSTYPE_AUTO;
+                    RECORDTYPE recordType=RECORDTYPE_AUTO;
                     qint32 nArrayCount=0;
 
                     if(sName.contains("["))
                     {
                         nArrayCount=sName.section("[",-1,-1).section("]",0,0).toInt();
 
-                        nArrayCount=qMax(nArrayCount,256);
+                        nArrayCount=qMax(nArrayCount,1);
+                        nArrayCount=qMin(nArrayCount,512); // TODO const
 
-                        posType=POSTYPE_ARRAY;
+                        recordType=RECORDTYPE_ARRAY;
                     }
                     else if(sType.contains("*"))
                     {
-                        posType=POSTYPE_POINTER;
+                        recordType=RECORDTYPE_POINTER;
                     }
-                    else if((sType=="unsigned char")||
-                            (sType=="unsigned short")||
-                            (sType=="unsigned int")||
-                            (sType=="unsigned long")||
-                            (sType=="unsigned long long")||
-                            (sType=="char")||
-                            (sType=="short")||
-                            (sType=="int")||
-                            (sType=="long")||
-                            (sType=="long long"))
+                    else
                     {
-                        posType=POSTYPE_VARIABLE;
+                        recordType=getRecordType(sType);
                     }
 
                     if(nArrayCount==0)
@@ -303,7 +286,7 @@ QList<XDynStructsEngine::DYNSTRUCT> XDynStructsEngine::loadFile(QString sFileNam
                     position.nSize=nSize;
                     position.nBitOffset=nBitOffset;
                     position.nBitSize=nBitSize;
-                    position.posType=posType;
+                    position.recordType=recordType;
                     position.nArrayCount=nArrayCount;
 
                     record.listPositions.append(position);
@@ -331,12 +314,12 @@ QList<XDynStructsEngine::DYNSTRUCT> *XDynStructsEngine::getStructs()
     return &g_listDynStructs;
 }
 
-QString XDynStructsEngine::getValue(void *pProcess, XBinary *pBinary, qint64 nAddress, qint64 nSize, POSTYPE posType, qint32 nBitOffset, qint32 nBitSize)
+QString XDynStructsEngine::getValue(void *pProcess, XBinary *pBinary, qint64 nAddress, qint64 nSize, RECORDTYPE recordType, qint32 nBitOffset, qint32 nBitSize)
 {
     // TODO Endian
     QString sResult;
 
-    if((posType==POSTYPE_VARIABLE)||(posType==POSTYPE_POINTER))
+    if((recordType==RECORDTYPE_VARIABLE)||(recordType==RECORDTYPE_POINTER))
     {
         if(nSize==1)
         {
@@ -415,6 +398,34 @@ QString XDynStructsEngine::getValue(void *pProcess, XBinary *pBinary, qint64 nAd
     return sResult;
 }
 
+QString XDynStructsEngine::getValueData(qint64 nAddress, RECORDTYPE recordType, QString sType, QString sValue, qint32 nArrayCount)
+{
+    QString sResult;
+
+    if(recordType==RECORDTYPE_POINTER)
+    {
+        sType=sType.section("*",0,-2).trimmed();
+        sResult=QString("%1&%2").arg(sValue,sType);
+    }
+    else if(recordType==RECORDTYPE_AUTO)
+    {
+        sResult=QString("0x%1&%2").arg(XBinary::valueToHex(nAddress),sType);
+    }
+    else if(recordType==RECORDTYPE_ARRAY)
+    {
+        STRUCTTYPE structType=STRUCTTYPE_VARIABLE;
+
+        if(sType.contains("*"))
+        {
+            structType=STRUCTTYPE_POINTER;
+        }
+
+        sResult=QString("0x%1&%2&%3&%4").arg(XBinary::valueToHex(nAddress),sType,QString::number(structType),QString::number(nArrayCount));
+    }
+
+    return sResult;
+}
+
 XDynStructsEngine::DYNSTRUCT XDynStructsEngine::getDynStructByName(QString sName)
 {
     DYNSTRUCT result={};
@@ -432,6 +443,32 @@ XDynStructsEngine::DYNSTRUCT XDynStructsEngine::getDynStructByName(QString sName
                 break;
             }
         }
+    }
+
+    return result;
+}
+
+XDynStructsEngine::RECORDTYPE XDynStructsEngine::getRecordType(QString sType)
+{
+    RECORDTYPE result=RECORDTYPE_AUTO;
+
+    if( (sType=="unsigned char")||
+        (sType=="unsigned short")||
+        (sType=="unsigned int")||
+        (sType=="unsigned long")||
+        (sType=="unsigned long long")||
+        (sType=="signed char")||
+        (sType=="signed short")||
+        (sType=="signed int")||
+        (sType=="signed long")||
+        (sType=="signed long long")||
+        (sType=="char")||
+        (sType=="short")||
+        (sType=="int")||
+        (sType=="long")||
+        (sType=="long long"))
+    {
+        result=RECORDTYPE_VARIABLE;
     }
 
     return result;
