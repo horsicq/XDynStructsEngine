@@ -65,6 +65,7 @@ public:
     {
         QString sIUID;
         QString sName;
+        QString sInfoFilePrefix;
         QString sInfoFile;
         qint64 nSize;
         RECORDTYPE recordType;

@@ -31,6 +31,11 @@ void XDynStructsEngine::setStructsPath(QString sStructsPath, OPTIONS options)
     if(sStructsPath!=g_sStructsPath)
     {
         XProcess::SYSTEMINFO systemInfo=XProcess::getSystemInfo();
+
+    #ifdef QT_DEBUG
+        qDebug("Build: %s",systemInfo.sBuild.toLatin1().data());
+    #endif
+
         // Load structs
         g_listDynStructs.clear();
 
@@ -42,6 +47,7 @@ void XDynStructsEngine::setStructsPath(QString sStructsPath, OPTIONS options)
             {
                 if(systemInfo.sBuild.contains("10.0."))
                 {
+                    // TODO 10.0.19041
                     sFileName=sStructsPath+QDir::separator()+systemInfo.sArch+QDir::separator()+QString("%1.json").arg("10.0.17134");
                 }
             }
@@ -214,7 +220,7 @@ QList<XDynStructsEngine::DYNSTRUCT> XDynStructsEngine::loadFile(QString sFileNam
             QJsonObject jsonObject=jsonDocument.object();
 
             QString sGlobalName=jsonObject.value("name").toString();
-            QString sFilePrefix=fileInfo.absolutePath()+QDir::separator()+sGlobalName+QDir::separator();
+            QString sFilePrefix=fileInfo.absolutePath()+QDir::separator()+sGlobalName;
 
             QJsonArray jsonStructsArray=jsonObject.value("structs").toArray();
 
@@ -235,7 +241,8 @@ QList<XDynStructsEngine::DYNSTRUCT> XDynStructsEngine::loadFile(QString sFileNam
 
                 if(sInfoFile!="")
                 {
-                    record.sInfoFile=sFilePrefix+sInfoFile;
+                    record.sInfoFilePrefix=sFilePrefix;
+                    record.sInfoFile=sInfoFile;
                 }
 
                 QJsonArray jsonPositionsArray=jsonStruct.value("positions").toArray();
