@@ -28,6 +28,8 @@ XDynStructsEngine::XDynStructsEngine(QObject *pParent) : QObject(pParent)
 
 void XDynStructsEngine::setStructsPath(QString sStructsPath, OPTIONS options)
 {
+    sStructsPath=XBinary::convertPathName(sStructsPath);
+
     if(sStructsPath!=g_sStructsPath)
     {
         XProcess::SYSTEMINFO systemInfo=XProcess::getSystemInfo();
