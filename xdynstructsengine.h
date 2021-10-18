@@ -25,6 +25,7 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include "xbinary.h"
+#include "xhtml.h"
 #include "xprocess.h"
 #include "xprocessdevice.h"
 
@@ -109,10 +110,12 @@ public:
     QList<DYNSTRUCT> *getStructs();
     QString getValue(void *pProcess,XBinary *pBinary,qint64 nAddress,qint64 nSize,RECORDTYPE recordType,qint32 nBitOffset,qint32 nBitSize);
     QString getValueData(qint64 nAddress,RECORDTYPE recordType,QString sType,QString sValue,qint32 nArrayCount);
+    QString getComment(void *pProcess,XBinary *pBinary,qint64 nAddress,QString sStructName,QString sType,QString sName);
 
     DYNSTRUCT getDynStructByName(QString sName);
 
     static RECORDTYPE getRecordType(QString sType);
+    static QString createListEntryLinks(void *pProcess,XBinary *pBinary,qint64 nAddress,QString sStructName,qint64 nDeltaOffset);
 
 private:
 #ifdef Q_OS_WIN

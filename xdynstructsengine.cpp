@@ -134,6 +134,7 @@ XDynStructsEngine::INFO XDynStructsEngine::getInfo(qint64 nAddress, QString sStr
 
                         infoRecord.sValue=getValue(pHandle,pBinary,infoRecord.nAddress,position.nSize,position.recordType,position.nBitOffset,position.nBitSize);
                         infoRecord.sValueData=getValueData(infoRecord.nAddress,position.recordType,position.sType,infoRecord.sValue,position.nArrayCount);
+                        infoRecord.sComment=getComment(pHandle,pBinary,infoRecord.nAddress,sStructName,infoRecord.sType,infoRecord.sName);
 
                         result.listRecords.append(infoRecord);
                     }
@@ -151,6 +152,7 @@ XDynStructsEngine::INFO XDynStructsEngine::getInfo(qint64 nAddress, QString sStr
 
                         infoRecord.sValue=getValue(pHandle,pBinary,infoRecord.nAddress,dynStruct.nSize,dynStruct.recordType,0,0);
                         infoRecord.sValueData=getValueData(infoRecord.nAddress,dynStruct.recordType,infoRecord.sType,infoRecord.sValue,1);
+                        infoRecord.sComment=getComment(pHandle,pBinary,infoRecord.nAddress,sStructName,infoRecord.sType,infoRecord.sName);
 
                         result.listRecords.append(infoRecord);
                     }
@@ -435,6 +437,93 @@ QString XDynStructsEngine::getValueData(qint64 nAddress, RECORDTYPE recordType, 
     return sResult;
 }
 
+QString XDynStructsEngine::getComment(void *pProcess,XBinary *pBinary,qint64 nAddress,QString sStructName,QString sType,QString sName)
+{
+    QString sResult;
+
+    if(sType=="struct _UNICODE_STRING")
+    {
+        quint16 nStringSize=0;
+        qint64 nStringAddress=0;
+        QString sString;
+
+        if(pProcess)
+        {
+            nStringSize=XProcess::read_uint16(pProcess,nAddress);
+
+            if(sizeof(void *)==8)
+            {
+                nStringAddress=XProcess::read_uint64(pProcess,nAddress+8);
+            }
+            else
+            {
+                nStringAddress=XProcess::read_uint32(pProcess,nAddress+4);
+            }
+        }
+        else if(pBinary)
+        {
+            nStringSize=pBinary->read_uint16(nAddress);
+
+            if(sizeof(void *)==8)
+            {
+                nStringAddress=pBinary->read_uint64(nAddress+8);
+            }
+            else
+            {
+                nStringAddress=pBinary->read_uint32(nAddress+4);
+            }
+        }
+
+        if(pProcess)
+        {
+            sString=XProcess::read_unicodeString(pProcess,nStringAddress,nStringSize);
+        }
+        else if(pBinary)
+        {
+            sString=pBinary->read_unicodeString(nStringAddress,nStringSize);
+        }
+
+        sResult=QString("\"%1\"").arg(sString);
+    }
+
+    if(sStructName=="struct _PEB_LDR_DATA")
+    {
+        if(sName=="InLoadOrderModuleList")
+        {
+            sResult=createListEntryLinks(pProcess,pBinary,nAddress,"struct _LDR_DATA_TABLE_ENTRY",0*(2*sizeof(void *)));
+        }
+        else if(sName=="InMemoryOrderModuleList")
+        {
+            sResult=createListEntryLinks(pProcess,pBinary,nAddress,"struct _LDR_DATA_TABLE_ENTRY",1*(2*sizeof(void *)));
+        }
+        else if(sName=="InInitializationOrderModuleList")
+        {
+            sResult=createListEntryLinks(pProcess,pBinary,nAddress,"struct _LDR_DATA_TABLE_ENTRY",2*(2*sizeof(void *)));
+        }
+    }
+    else if(sStructName=="struct _LDR_DATA_TABLE_ENTRY")
+    {
+        if(sName=="InLoadOrderLinks")
+        {
+            sResult=createListEntryLinks(pProcess,pBinary,nAddress,"struct _LDR_DATA_TABLE_ENTRY",0*(2*sizeof(void *)));
+        }
+        else if(sName=="InMemoryOrderLinks")
+        {
+            sResult=createListEntryLinks(pProcess,pBinary,nAddress,"struct _LDR_DATA_TABLE_ENTRY",1*(2*sizeof(void *)));
+        }
+        else if(sName=="InInitializationOrderLinks")
+        {
+            sResult=createListEntryLinks(pProcess,pBinary,nAddress,"struct _LDR_DATA_TABLE_ENTRY",2*(2*sizeof(void *)));
+        }
+//        else if(sName=="InProgressLinks")
+//        {
+//            sResult=createListEntryLinks(pProcess,pBinary,nAddress,"struct _LDR_DATA_TABLE_ENTRY",0);
+//        }
+    }
+
+    return sResult;
+}
+
 XDynStructsEngine::DYNSTRUCT XDynStructsEngine::getDynStructByName(QString sName)
 {
     DYNSTRUCT result={};
@@ -482,6 +571,49 @@ XDynStructsEngine::RECORDTYPE XDynStructsEngine::getRecordType(QString sType)
 
     return result;
 }
+
+QString XDynStructsEngine::createListEntryLinks(void *pProcess, XBinary *pBinary, qint64 nAddress, QString sStructName, qint64 nDeltaOffset)
+{
+    QString sResult;
+
+    qint64 nFlink=0;
+    qint64 nBlink=0;
+
+    if(sizeof(void *)==8)
+    {
+        if(pProcess)
+        {
+            nFlink=XProcess::read_uint64(pProcess,nAddress);
+            nBlink=XProcess::read_uint64(pProcess,nAddress+8);
+        }
+        else if(pBinary)
+        {
+            nFlink=pBinary->read_uint64(nAddress);
+            nBlink=pBinary->read_uint64(nAddress+8);
+        }
+    }
+    else
+    {
+        if(pProcess)
+        {
+            nFlink=XProcess::read_uint32(pProcess,nAddress);
+            nBlink=XProcess::read_uint32(pProcess,nAddress+4);
+        }
+        else if(pBinary)
+        {
+            nFlink=pBinary->read_uint32(nAddress);
+            nBlink=pBinary->read_uint32(nAddress+4);
+        }
+    }
+
+    QString sFlink=QString("0x%1&%2").arg(XBinary::valueToHex(nFlink-nDeltaOffset),sStructName);
+    QString sBlink=QString("0x%1&%2").arg(XBinary::valueToHex(nBlink-nDeltaOffset),sStructName);
+
+    sResult=QString("<a href=\"%1\">Flink</a> <a href=\"%2\">Blink</a>").arg(sFlink,sBlink);
+
+    return sResult;
+}
+
 #ifdef Q_OS_WIN
 XDynStructsEngine::INFORECORD XDynStructsEngine::getPEB(qint64 nProcessId)
 {
