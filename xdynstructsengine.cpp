@@ -32,10 +32,10 @@ void XDynStructsEngine::setStructsPath(QString sStructsPath, OPTIONS options)
 
     if(sStructsPath!=g_sStructsPath)
     {
-        XProcess::SYSTEMINFO systemInfo=XProcess::getSystemInfo();
+        XBinary::OSINFO osInfo=XProcess::getOsInfo();
 
     #ifdef QT_DEBUG
-        qDebug("Build: %s",systemInfo.sBuild.toLatin1().data());
+        qDebug("Build: %s",osInfo.sBuild.toLatin1().data());
     #endif
 
         // Load structs
@@ -43,14 +43,14 @@ void XDynStructsEngine::setStructsPath(QString sStructsPath, OPTIONS options)
 
         if(options.bSystem)
         {
-            QString sFileName=sStructsPath+QDir::separator()+systemInfo.sArch+QDir::separator()+QString("%1.json").arg(systemInfo.sBuild);
+            QString sFileName=sStructsPath+QDir::separator()+osInfo.sArch+QDir::separator()+QString("%1.json").arg(osInfo.sBuild);
 
             if(!XBinary::isFileExists(sFileName))
             {
-                if(systemInfo.sBuild.contains("10.0."))
+                if(osInfo.sBuild.contains("10.0."))
                 {
                     // TODO 10.0.19041
-                    sFileName=sStructsPath+QDir::separator()+systemInfo.sArch+QDir::separator()+QString("%1.json").arg("10.0.17134");
+                    sFileName=sStructsPath+QDir::separator()+osInfo.sArch+QDir::separator()+QString("%1.json").arg("10.0.17134");
                 }
             }
 
@@ -59,12 +59,12 @@ void XDynStructsEngine::setStructsPath(QString sStructsPath, OPTIONS options)
 
         if(options.bGeneral)
         {
-            g_listDynStructs.append(loadFile(sStructsPath+QDir::separator()+systemInfo.sArch+QDir::separator()+QString("general.json")));
+            g_listDynStructs.append(loadFile(sStructsPath+QDir::separator()+osInfo.sArch+QDir::separator()+QString("general.json")));
         }
 
         if(options.bCustom)
         {
-            g_listDynStructs.append(loadFile(sStructsPath+QDir::separator()+systemInfo.sArch+QDir::separator()+QString("custom.json")));
+            g_listDynStructs.append(loadFile(sStructsPath+QDir::separator()+osInfo.sArch+QDir::separator()+QString("custom.json")));
         }
     }
 
