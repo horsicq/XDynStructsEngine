@@ -119,9 +119,9 @@ XDynStructsEngine::INFO XDynStructsEngine::getInfo(qint64 nAddress, QString sStr
 
                 if(nCount<=1)
                 {
-                    int nNumberOfPositions=dynStruct.listPositions.count();
+                    qint32 nNumberOfPositions=dynStruct.listPositions.count();
 
-                    for(int i=0;i<nNumberOfPositions;i++)
+                    for(qint32 i=0;i<nNumberOfPositions;i++)
                     {
                         DSPOSITION position=dynStruct.listPositions.at(i);
 
