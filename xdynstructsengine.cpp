@@ -165,7 +165,7 @@ XDynStructsEngine::INFO XDynStructsEngine::getInfo(qint64 nAddress, QString sStr
 
             qint32 nPointerSize=sizeof(void *);
 
-            for(int i=0;i<nCount;i++)
+            for(qint32 i=0;i<nCount;i++)
             {
                 INFORECORD infoRecord={};
 
