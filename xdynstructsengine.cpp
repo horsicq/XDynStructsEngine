@@ -258,7 +258,7 @@ QList<XDynStructsEngine::DYNSTRUCT> XDynStructsEngine::loadFile(QString sFileNam
 
                 QJsonArray jsonPositionsArray=jsonStruct.value("positions").toArray();
 
-                int nNumberOfPositions=jsonPositionsArray.count();
+                qint32 nNumberOfPositions=jsonPositionsArray.count();
 
                 for(int j=0;j<nNumberOfPositions;j++)
                 {
