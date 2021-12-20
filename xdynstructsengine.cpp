@@ -228,9 +228,9 @@ QList<XDynStructsEngine::DYNSTRUCT> XDynStructsEngine::loadFile(QString sFileNam
 
             QJsonArray jsonStructsArray=jsonObject.value("structs").toArray();
 
-            int nNumberOfStructs=jsonStructsArray.count();
+            qint32 nNumberOfStructs=jsonStructsArray.count();
 
-            for(int i=0;i<nNumberOfStructs;i++)
+            for(qint32 i=0;i<nNumberOfStructs;i++)
             {
                 DYNSTRUCT record={};
 
