@@ -28,18 +28,19 @@
 #include "xhtml.h"
 #include "xprocess.h"
 #include "xprocessdevice.h"
+#include "xoptions.h"
 
 class XDynStructsEngine : public QObject
 {
     Q_OBJECT
 
 public:
-    struct OPTIONS
-    {
-        bool bSystem;
-        bool bGeneral;
-        bool bCustom;
-    };
+//    struct OPTIONS
+//    {
+//        bool bSystem;
+//        bool bGeneral;
+//        bool bCustom;
+//    };
 
     enum RECORDTYPE
     {
@@ -98,9 +99,11 @@ public:
 
     explicit XDynStructsEngine(QObject *pParent=nullptr);
 
-    void setStructsPath(QString sStructsPath,OPTIONS options);
+    void adjust();
     void setProcessId(qint64 nProcessId);
     void setDevice(QIODevice *pDevice);
+
+    void setOptions(XOptions *pXOptions);
 
     qint64 getProcessId();
     QIODevice *getDevice();
@@ -113,7 +116,6 @@ public:
     QString getComment(void *pProcess,XBinary *pBinary,qint64 nAddress,QString sStructName,QString sType,QString sName);
 
     DYNSTRUCT getDynStructByName(QString sName);
-
     static RECORDTYPE getRecordType(QString sType);
     static QString createListEntryLinks(void *pProcess,XBinary *pBinary,qint64 nAddress,QString sStructName,qint64 nDeltaOffset);
 
@@ -128,7 +130,8 @@ signals:
 
 private:
     QList<DYNSTRUCT> g_listDynStructs;
-    OPTIONS g_options;
+//    OPTIONS g_options;
+    XOptions *g_pXOptions;
     QIODevice *g_pDevice;
     qint64 g_nProcessId;
     QString g_sStructsPath;

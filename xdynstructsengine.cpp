@@ -26,9 +26,9 @@ XDynStructsEngine::XDynStructsEngine(QObject *pParent) : QObject(pParent)
     g_pDevice=nullptr;
 }
 
-void XDynStructsEngine::setStructsPath(QString sStructsPath, OPTIONS options)
+void XDynStructsEngine::adjust()
 {
-    sStructsPath=XBinary::convertPathName(sStructsPath);
+    QString sStructsPath=XBinary::convertPathName(g_pXOptions->getStructsPath());
 
     if(sStructsPath!=g_sStructsPath)
     {
@@ -41,7 +41,7 @@ void XDynStructsEngine::setStructsPath(QString sStructsPath, OPTIONS options)
         // Load structs
         g_listDynStructs.clear();
 
-        if(options.bSystem)
+//        if(options.bSystem)
         {
             QString sFileName=sStructsPath+QDir::separator()+osInfo.sArch+QDir::separator()+QString("%1.json").arg(osInfo.sBuild);
 
@@ -57,12 +57,12 @@ void XDynStructsEngine::setStructsPath(QString sStructsPath, OPTIONS options)
             g_listDynStructs.append(loadFile(sFileName));
         }
 
-        if(options.bGeneral)
+//        if(options.bGeneral)
         {
             g_listDynStructs.append(loadFile(sStructsPath+QDir::separator()+osInfo.sArch+QDir::separator()+QString("general.json")));
         }
 
-        if(options.bCustom)
+//        if(options.bCustom)
         {
             g_listDynStructs.append(loadFile(sStructsPath+QDir::separator()+osInfo.sArch+QDir::separator()+QString("custom.json")));
         }
@@ -74,11 +74,18 @@ void XDynStructsEngine::setStructsPath(QString sStructsPath, OPTIONS options)
 void XDynStructsEngine::setProcessId(qint64 nProcessId)
 {
     g_nProcessId=nProcessId;
+    adjust();
 }
 
 void XDynStructsEngine::setDevice(QIODevice *pDevice)
 {
     g_pDevice=pDevice;
+    adjust();
+}
+
+void XDynStructsEngine::setOptions(XOptions *pXOptions)
+{
+    g_pXOptions=pXOptions;
 }
 
 qint64 XDynStructsEngine::getProcessId()
