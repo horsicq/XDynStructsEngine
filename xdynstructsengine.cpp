@@ -537,7 +537,7 @@ XDynStructsEngine::DYNSTRUCT XDynStructsEngine::getDynStructByName(QString sName
 
     if(sName!="")
     {
-        int nNumberOfStructs=g_listDynStructs.count();
+        qint32 nNumberOfStructs=g_listDynStructs.count();
 
         for(int i=0;i<nNumberOfStructs;i++)
         {
