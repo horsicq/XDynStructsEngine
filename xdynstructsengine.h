@@ -107,7 +107,6 @@ public:
 
     qint64 getProcessId();
     QIODevice *getDevice();
-
     INFO getInfo(qint64 nAddress,QString sStructName,STRUCTTYPE structType,qint32 nCount);
     QList<DYNSTRUCT> loadFile(QString sFileName);
     QList<DYNSTRUCT> *getStructs();
