@@ -102,7 +102,6 @@ public:
     void adjust();
     void setProcessId(qint64 nProcessId);
     void setDevice(QIODevice *pDevice);
-
     void setOptions(XOptions *pXOptions);
 
     qint64 getProcessId();
