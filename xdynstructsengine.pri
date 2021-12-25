@@ -21,3 +21,7 @@ SOURCES += \
     XCONFIG += dialogtextinfo
     include($$PWD/../FormatDialogs/dialogtextinfo.pri)
 }
+
+DISTFILES += \
+    $$PWD/LICENSE \
+    $$PWD/README.md
