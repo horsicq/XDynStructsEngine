@@ -647,7 +647,7 @@ QList<XDynStructsEngine::INFORECORD> XDynStructsEngine::getTEBs(qint64 nProcessI
 
     int nNumberOfThreads=listTEBAddresses.count();
 
-    for(int i=0;i<nNumberOfThreads;i++)
+    for(qint32 i=0;i<nNumberOfThreads;i++)
     {
         INFORECORD record={};
 
