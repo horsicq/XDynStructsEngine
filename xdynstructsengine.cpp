@@ -155,7 +155,7 @@ XDynStructsEngine::INFO XDynStructsEngine::getInfo(qint64 nAddress, QString sStr
                         infoRecord.nOffset=i*dynStruct.nSize;
                         infoRecord.nAddress=nAddress+infoRecord.nOffset;
                         infoRecord.sType=dynStruct.sName;
-                        infoRecord.sName=QString("Value[%1]").arg(i); // mb TODO translate
+                        infoRecord.sName=QString("%1[%2]").arg(tr("Value"),QString::number(i));
 
                         infoRecord.sValue=getValue(pHandle,pBinary,infoRecord.nAddress,dynStruct.nSize,dynStruct.recordType,0,0);
                         infoRecord.sValueData=getValueData(infoRecord.nAddress,dynStruct.recordType,infoRecord.sType,infoRecord.sValue,1);
