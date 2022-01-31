@@ -103,7 +103,6 @@ public:
     void setProcessId(qint64 nProcessId);
     void setDevice(QIODevice *pDevice);
     void setOptions(XOptions *pXOptions);
-
     qint64 getProcessId();
     QIODevice *getDevice();
     INFO getInfo(qint64 nAddress,QString sStructName,STRUCTTYPE structType,qint32 nCount);
