@@ -21,7 +21,7 @@ SOURCES += \
     XCONFIG += dialogtextinfo
     include($$PWD/../FormatDialogs/dialogtextinfo.pri)
 }
-
+# TODO cmake
 DISTFILES += \
     $$PWD/LICENSE \
     $$PWD/README.md
