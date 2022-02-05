@@ -98,7 +98,7 @@ QIODevice *XDynStructsEngine::getDevice()
     return g_pDevice;
 }
 
-XDynStructsEngine::INFO XDynStructsEngine::getInfo(qint64 nAddress, QString sStructName, STRUCTTYPE structType, qint32 nCount)
+XDynStructsEngine::INFO XDynStructsEngine::getInfo(qint64 nAddress,QString sStructName,STRUCTTYPE structType,qint32 nCount)
 {
     INFO result={};
 
