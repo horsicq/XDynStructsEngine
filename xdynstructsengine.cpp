@@ -332,7 +332,7 @@ QList<XDynStructsEngine::DYNSTRUCT> *XDynStructsEngine::getStructs()
     return &g_listDynStructs;
 }
 
-QString XDynStructsEngine::getValue(void *pProcess, XBinary *pBinary, qint64 nAddress, qint64 nSize, RECORDTYPE recordType, qint32 nBitOffset, qint32 nBitSize)
+QString XDynStructsEngine::getValue(void *pProcess,XBinary *pBinary,qint64 nAddress,qint64 nSize,RECORDTYPE recordType,qint32 nBitOffset,qint32 nBitSize)
 {
     // TODO Endian
     QString sResult;
