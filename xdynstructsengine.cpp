@@ -579,7 +579,7 @@ XDynStructsEngine::RECORDTYPE XDynStructsEngine::getRecordType(QString sType)
     return result;
 }
 
-QString XDynStructsEngine::createListEntryLinks(void *pProcess, XBinary *pBinary, qint64 nAddress, QString sStructName, qint64 nDeltaOffset)
+QString XDynStructsEngine::createListEntryLinks(void *pProcess,XBinary *pBinary,qint64 nAddress,QString sStructName,qint64 nDeltaOffset)
 {
     QString sResult;
 
