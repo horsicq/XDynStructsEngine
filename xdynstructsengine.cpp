@@ -416,7 +416,7 @@ QString XDynStructsEngine::getValue(void *pProcess,XBinary *pBinary,qint64 nAddr
     return sResult;
 }
 
-QString XDynStructsEngine::getValueData(qint64 nAddress, RECORDTYPE recordType, QString sType, QString sValue, qint32 nArrayCount)
+QString XDynStructsEngine::getValueData(qint64 nAddress,RECORDTYPE recordType,QString sType,QString sValue,qint32 nArrayCount)
 {
     QString sResult;
 
