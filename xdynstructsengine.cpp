@@ -24,6 +24,7 @@ XDynStructsEngine::XDynStructsEngine(QObject *pParent) : QObject(pParent)
 {
     g_nProcessId=0;
     g_pDevice=nullptr;
+    g_pXOptions=nullptr;
 }
 
 void XDynStructsEngine::adjust()
