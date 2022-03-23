@@ -26,9 +26,9 @@
 #include <QJsonArray>
 #include "xbinary.h"
 #include "xhtml.h"
+#include "xoptions.h"
 #include "xprocess.h"
 #include "xprocessdevice.h"
-#include "xoptions.h"
 
 class XDynStructsEngine : public QObject
 {
