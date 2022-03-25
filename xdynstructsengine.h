@@ -21,9 +21,9 @@
 #ifndef XDYNSTRUCTSENGINE_H
 #define XDYNSTRUCTSENGINE_H
 
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QJsonArray>
 #include "xbinary.h"
 #include "xhtml.h"
 #include "xoptions.h"
