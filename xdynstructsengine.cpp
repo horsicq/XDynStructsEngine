@@ -34,12 +34,22 @@ XDynStructsEngine::~XDynStructsEngine()
 {
     if(g_nProcessId&&g_hProcess)
     {
-        XProcess::closeProcess(g_hProcess);
+        if(g_ioMode==IOMODE_PROCESS_USER)
+        {
+            XProcess::closeProcess(g_hProcess);
+        }
+        else if(g_ioMode==IOMODE_PROCESS_KERNEL)
+        {
+            // TODO
+        }
     }
 
     if(g_pDevice&&g_pBinary)
     {
-        delete g_pBinary;
+        if(g_ioMode==IOMODE_DEVICE)
+        {
+            delete g_pBinary;
+        }
     }
 }
 
@@ -355,11 +365,21 @@ QString XDynStructsEngine::getValue(quint64 nAddress, quint64 nSize, RECORDTYPE 
 
             if(g_hProcess)
             {
-                nValue=XProcess::read_uint8(g_hProcess,nAddress);
+                if(g_ioMode==IOMODE_PROCESS_USER)
+                {
+                    nValue=XProcess::read_uint8(g_hProcess,nAddress);
+                }
+                else if(g_ioMode==IOMODE_PROCESS_KERNEL)
+                {
+                    // TODO
+                }
             }
             else if(g_pBinary)
             {
-                nValue=g_pBinary->read_uint8(nAddress);
+                if(g_ioMode==IOMODE_DEVICE)
+                {
+                    nValue=g_pBinary->read_uint8(nAddress);
+                }
             }
 
             nValue=XBinary::getBits_uint8(nValue,nBitOffset,nBitSize);
@@ -372,11 +392,21 @@ QString XDynStructsEngine::getValue(quint64 nAddress, quint64 nSize, RECORDTYPE 
 
             if(g_hProcess)
             {
-                nValue=XProcess::read_uint16(g_hProcess,nAddress);
+                if(g_ioMode==IOMODE_PROCESS_USER)
+                {
+                    nValue=XProcess::read_uint16(g_hProcess,nAddress);
+                }
+                else if(g_ioMode==IOMODE_PROCESS_KERNEL)
+                {
+                    // TODO
+                }
             }
             else if(g_pBinary)
             {
-                nValue=g_pBinary->read_uint16(nAddress);
+                if(g_ioMode==IOMODE_DEVICE)
+                {
+                    nValue=g_pBinary->read_uint16(nAddress);
+                }
             }
 
             nValue=XBinary::getBits_uint16(nValue,nBitOffset,nBitSize);
@@ -389,11 +419,21 @@ QString XDynStructsEngine::getValue(quint64 nAddress, quint64 nSize, RECORDTYPE 
 
             if(g_hProcess)
             {
-                nValue=XProcess::read_uint32(g_hProcess,nAddress);
+                if(g_ioMode==IOMODE_PROCESS_USER)
+                {
+                    nValue=XProcess::read_uint32(g_hProcess,nAddress);
+                }
+                else if(g_ioMode==IOMODE_PROCESS_KERNEL)
+                {
+                    // TODO
+                }
             }
             else if(g_pBinary)
             {
-                nValue=g_pBinary->read_uint32(nAddress);
+                if(g_ioMode==IOMODE_DEVICE)
+                {
+                    nValue=g_pBinary->read_uint32(nAddress);
+                }
             }
 
             nValue=XBinary::getBits_uint32(nValue,nBitOffset,nBitSize);
@@ -406,11 +446,21 @@ QString XDynStructsEngine::getValue(quint64 nAddress, quint64 nSize, RECORDTYPE 
 
             if(g_hProcess)
             {
-                nValue=XProcess::read_uint64(g_hProcess,nAddress);
+                if(g_ioMode==IOMODE_PROCESS_USER)
+                {
+                    nValue=XProcess::read_uint64(g_hProcess,nAddress);
+                }
+                else if(g_ioMode==IOMODE_PROCESS_KERNEL)
+                {
+                    // TODO
+                }
             }
             else if(g_pBinary)
             {
-                nValue=g_pBinary->read_uint64(nAddress);
+                if(g_ioMode==IOMODE_DEVICE)
+                {
+                    nValue=g_pBinary->read_uint64(nAddress);
+                }
             }
 
             nValue=XBinary::getBits_uint64(nValue,nBitOffset,nBitSize);
@@ -470,11 +520,21 @@ QString XDynStructsEngine::getComment(quint64 nAddress, QString sStructName, QSt
 
             if(sizeof(void *)==8)
             {
-                nStringAddress=XProcess::read_uint64(g_hProcess,nAddress+8);
+                if(g_ioMode==IOMODE_PROCESS_USER)
+                {
+                    nStringAddress=XProcess::read_uint64(g_hProcess,nAddress+8);
+                }
+                else if(g_ioMode==IOMODE_PROCESS_KERNEL)
+                {
+                    // TODO
+                }
             }
             else
             {
-                nStringAddress=XProcess::read_uint32(g_hProcess,nAddress+4);
+                if(g_ioMode==IOMODE_PROCESS_USER)
+                {
+                    nStringAddress=XProcess::read_uint32(g_hProcess,nAddress+4);
+                }
             }
         }
         else if(g_pBinary)
@@ -483,21 +543,37 @@ QString XDynStructsEngine::getComment(quint64 nAddress, QString sStructName, QSt
 
             if(sizeof(void *)==8)
             {
-                nStringAddress=g_pBinary->read_uint64(nAddress+8);
+                if(g_ioMode==IOMODE_DEVICE)
+                {
+                    nStringAddress=g_pBinary->read_uint64(nAddress+8);
+                }
             }
             else
             {
-                nStringAddress=g_pBinary->read_uint32(nAddress+4);
+                if(g_ioMode==IOMODE_DEVICE)
+                {
+                    nStringAddress=g_pBinary->read_uint32(nAddress+4);
+                }
             }
         }
 
         if(g_hProcess)
         {
-            sString=XProcess::read_unicodeString(g_hProcess,nStringAddress,nStringSize);
+            if(g_ioMode==IOMODE_PROCESS_USER)
+            {
+                sString=XProcess::read_unicodeString(g_hProcess,nStringAddress,nStringSize);
+            }
+            else if(g_ioMode==IOMODE_PROCESS_KERNEL)
+            {
+                // TODO
+            }
         }
         else if(g_pBinary)
         {
-            sString=g_pBinary->read_unicodeString(nStringAddress,nStringSize);
+            if(g_ioMode==IOMODE_DEVICE)
+            {
+                sString=g_pBinary->read_unicodeString(nStringAddress,nStringSize);
+            }
         }
 
         sResult=QString("\"%1\"").arg(sString);
@@ -600,26 +676,46 @@ QString XDynStructsEngine::createListEntryLinks(quint64 nAddress, QString sStruc
     {
         if(g_hProcess)
         {
-            nFlink=XProcess::read_uint64(g_hProcess,nAddress);
-            nBlink=XProcess::read_uint64(g_hProcess,nAddress+8);
+            if(g_ioMode==IOMODE_PROCESS_USER)
+            {
+                nFlink=XProcess::read_uint64(g_hProcess,nAddress);
+                nBlink=XProcess::read_uint64(g_hProcess,nAddress+8);
+            }
+            else if(g_ioMode==IOMODE_PROCESS_KERNEL)
+            {
+                // TODO
+            }
         }
         else if(g_pBinary)
         {
-            nFlink=g_pBinary->read_uint64(nAddress);
-            nBlink=g_pBinary->read_uint64(nAddress+8);
+            if(g_ioMode==IOMODE_DEVICE)
+            {
+                nFlink=g_pBinary->read_uint64(nAddress);
+                nBlink=g_pBinary->read_uint64(nAddress+8);
+            }
         }
     }
     else
     {
         if(g_hProcess)
         {
-            nFlink=XProcess::read_uint32(g_hProcess,nAddress);
-            nBlink=XProcess::read_uint32(g_hProcess,nAddress+4);
+            if(g_ioMode==IOMODE_PROCESS_USER)
+            {
+                nFlink=XProcess::read_uint32(g_hProcess,nAddress);
+                nBlink=XProcess::read_uint32(g_hProcess,nAddress+4);
+            }
+            else if(g_ioMode==IOMODE_PROCESS_KERNEL)
+            {
+                // TODO
+            }
         }
         else if(g_pBinary)
         {
-            nFlink=g_pBinary->read_uint32(nAddress);
-            nBlink=g_pBinary->read_uint32(nAddress+4);
+            if(g_ioMode==IOMODE_DEVICE)
+            {
+                nFlink=g_pBinary->read_uint32(nAddress);
+                nBlink=g_pBinary->read_uint32(nAddress+4);
+            }
         }
     }
 
@@ -635,9 +731,25 @@ XIODevice *XDynStructsEngine::createIODevice(quint64 nAddress, quint64 nSize)
 {
     XIODevice *pResult=nullptr;
 
-    if(g_ioMode==IOMODE_PROCESSUSER)
+    if(g_nProcessId)
     {
-        pResult=new XProcess(g_nProcessId,nAddress,nSize);
+        if(g_ioMode==IOMODE_PROCESS_USER)
+        {
+            pResult=new XProcess(g_nProcessId,nAddress,nSize);
+        }
+        else if(g_ioMode==IOMODE_PROCESS_KERNEL)
+        {
+            QString sServiceName=g_pXOptions->getValue(XOptions::ID_IODRIVER_SERVICENAME).toString();
+
+            pResult=new XWinIODriver(sServiceName,g_nProcessId,nAddress,nSize);
+        }
+    }
+    else if(g_pDevice)
+    {
+        if(g_ioMode==IOMODE_DEVICE)
+        {
+            pResult=new SubDevice(g_pDevice,nAddress,nSize);
+        }
     }
 
     return pResult;

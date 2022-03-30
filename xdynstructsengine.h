@@ -49,9 +49,9 @@ public:
     enum IOMODE
     {
         IOMODE_DEVICE=0,
-        IOMODE_PROCESSUSER,
+        IOMODE_PROCESS_USER,
     #ifdef USE_XWINIODRIVER
-        IOMODE_PROCESSKERNEL
+        IOMODE_PROCESS_KERNEL
     #endif
     };
 
