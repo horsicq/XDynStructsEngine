@@ -38,10 +38,12 @@ XDynStructsEngine::~XDynStructsEngine()
         {
             XProcess::closeProcess(g_hProcess);
         }
+    #ifdef Q_OS_WIN
         else if(g_ioMode==IOMODE_PROCESS_KERNEL)
         {
             // TODO
         }
+    #endif
     }
 
     if(g_pDevice&&g_pBinary)
@@ -369,10 +371,12 @@ QString XDynStructsEngine::getValue(quint64 nAddress, quint64 nSize, RECORDTYPE 
                 {
                     nValue=XProcess::read_uint8(g_hProcess,nAddress);
                 }
+            #ifdef Q_OS_WIN
                 else if(g_ioMode==IOMODE_PROCESS_KERNEL)
                 {
                     // TODO
                 }
+            #endif
             }
             else if(g_pBinary)
             {
@@ -396,10 +400,12 @@ QString XDynStructsEngine::getValue(quint64 nAddress, quint64 nSize, RECORDTYPE 
                 {
                     nValue=XProcess::read_uint16(g_hProcess,nAddress);
                 }
+            #ifdef Q_OS_WIN
                 else if(g_ioMode==IOMODE_PROCESS_KERNEL)
                 {
                     // TODO
                 }
+            #endif
             }
             else if(g_pBinary)
             {
@@ -423,10 +429,12 @@ QString XDynStructsEngine::getValue(quint64 nAddress, quint64 nSize, RECORDTYPE 
                 {
                     nValue=XProcess::read_uint32(g_hProcess,nAddress);
                 }
+            #ifdef Q_OS_WIN
                 else if(g_ioMode==IOMODE_PROCESS_KERNEL)
                 {
                     // TODO
                 }
+            #endif
             }
             else if(g_pBinary)
             {
@@ -450,10 +458,12 @@ QString XDynStructsEngine::getValue(quint64 nAddress, quint64 nSize, RECORDTYPE 
                 {
                     nValue=XProcess::read_uint64(g_hProcess,nAddress);
                 }
+            #ifdef Q_OS_WIN
                 else if(g_ioMode==IOMODE_PROCESS_KERNEL)
                 {
                     // TODO
                 }
+            #endif
             }
             else if(g_pBinary)
             {
@@ -524,10 +534,12 @@ QString XDynStructsEngine::getComment(quint64 nAddress, QString sStructName, QSt
                 {
                     nStringAddress=XProcess::read_uint64(g_hProcess,nAddress+8);
                 }
+            #ifdef Q_OS_WIN
                 else if(g_ioMode==IOMODE_PROCESS_KERNEL)
                 {
                     // TODO
                 }
+            #endif
             }
             else
             {
@@ -563,10 +575,12 @@ QString XDynStructsEngine::getComment(quint64 nAddress, QString sStructName, QSt
             {
                 sString=XProcess::read_unicodeString(g_hProcess,nStringAddress,nStringSize);
             }
+        #ifdef Q_OS_WIN
             else if(g_ioMode==IOMODE_PROCESS_KERNEL)
             {
                 // TODO
             }
+        #endif
         }
         else if(g_pBinary)
         {
@@ -681,10 +695,12 @@ QString XDynStructsEngine::createListEntryLinks(quint64 nAddress, QString sStruc
                 nFlink=XProcess::read_uint64(g_hProcess,nAddress);
                 nBlink=XProcess::read_uint64(g_hProcess,nAddress+8);
             }
+        #ifdef Q_OS_WIN
             else if(g_ioMode==IOMODE_PROCESS_KERNEL)
             {
                 // TODO
             }
+        #endif
         }
         else if(g_pBinary)
         {
@@ -704,10 +720,12 @@ QString XDynStructsEngine::createListEntryLinks(quint64 nAddress, QString sStruc
                 nFlink=XProcess::read_uint32(g_hProcess,nAddress);
                 nBlink=XProcess::read_uint32(g_hProcess,nAddress+4);
             }
+        #ifdef Q_OS_WIN
             else if(g_ioMode==IOMODE_PROCESS_KERNEL)
             {
                 // TODO
             }
+        #endif
         }
         else if(g_pBinary)
         {
@@ -737,12 +755,14 @@ XIODevice *XDynStructsEngine::createIODevice(quint64 nAddress, quint64 nSize)
         {
             pResult=new XProcess(g_nProcessId,nAddress,nSize);
         }
+    #ifdef Q_OS_WIN
         else if(g_ioMode==IOMODE_PROCESS_KERNEL)
         {
             QString sServiceName=g_pXOptions->getValue(XOptions::ID_IODRIVER_SERVICENAME).toString();
 
             pResult=new XWinIODriver(sServiceName,g_nProcessId,nAddress,nSize);
         }
+    #endif
     }
     else if(g_pDevice)
     {
