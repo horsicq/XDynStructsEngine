@@ -28,11 +28,15 @@
 #include "xhtml.h"
 #include "xoptions.h"
 #include "xprocess.h"
-#include "xprocessdevice.h"
+#ifdef USE_XWINIODRIVER
+#include "xwiniodriver.h"
+#endif
 
 class XDynStructsEngine : public QObject
 {
     Q_OBJECT
+
+    // TODO user/Kernel
 
 public:
 //    struct OPTIONS
@@ -41,6 +45,15 @@ public:
 //        bool bGeneral;
 //        bool bCustom;
 //    };
+
+    enum IOMODE
+    {
+        IOMODE_DEVICE=0,
+        IOMODE_PROCESSUSER,
+    #ifdef USE_XWINIODRIVER
+        IOMODE_PROCESSKERNEL
+    #endif
+    };
 
     enum RECORDTYPE
     {
@@ -76,8 +89,8 @@ public:
 
     struct INFORECORD
     {
-        qint64 nAddress;    // Do not show if -1
-        qint64 nOffset;     // Do not show if -1; Offset from begin
+        quint64 nAddress;    // Do not show if -1
+        quint64 nOffset;     // Do not show if -1; Offset from begin
         QString sType;
         QString sName;
         QString sValue;
@@ -98,22 +111,25 @@ public:
     };
 
     explicit XDynStructsEngine(QObject *pParent=nullptr);
+    ~XDynStructsEngine();
 
     void adjust();
-    void setProcessId(qint64 nProcessId);
+    void setProcessId(qint64 nProcessId,IOMODE ioMode);
     void setDevice(QIODevice *pDevice);
     void setOptions(XOptions *pXOptions);
     qint64 getProcessId();
     QIODevice *getDevice();
-    INFO getInfo(qint64 nAddress,QString sStructName,STRUCTTYPE structType,qint32 nCount);
+    INFO getInfo(quint64 nAddress,QString sStructName,STRUCTTYPE structType,qint32 nCount);
     QList<DYNSTRUCT> loadFile(QString sFileName);
     QList<DYNSTRUCT> *getStructs();
-    QString getValue(void *pProcess,XBinary *pBinary,qint64 nAddress,qint64 nSize,RECORDTYPE recordType,qint32 nBitOffset,qint32 nBitSize);
-    QString getValueData(qint64 nAddress,RECORDTYPE recordType,QString sType,QString sValue,qint32 nArrayCount);
-    QString getComment(void *pProcess,XBinary *pBinary,qint64 nAddress,QString sStructName,QString sType,QString sName);
+    QString getValue(quint64 nAddress,quint64 nSize,RECORDTYPE recordType,qint32 nBitOffset,qint32 nBitSize);
+    QString getValueData(quint64 nAddress,RECORDTYPE recordType,QString sType,QString sValue,qint32 nArrayCount);
+    QString getComment(quint64 nAddress,QString sStructName,QString sType,QString sName);
     DYNSTRUCT getDynStructByName(QString sName);
     static RECORDTYPE getRecordType(QString sType);
-    static QString createListEntryLinks(void *pProcess,XBinary *pBinary,qint64 nAddress,QString sStructName,qint64 nDeltaOffset);
+    QString createListEntryLinks(quint64 nAddress,QString sStructName,qint64 nDeltaOffset);
+
+    XIODevice *createIODevice(quint64 nAddress,quint64 nSize);
 
 private:
 #ifdef Q_OS_WIN
@@ -130,7 +146,10 @@ private:
     XOptions *g_pXOptions;
     QIODevice *g_pDevice;
     qint64 g_nProcessId;
+    void *g_hProcess;
     QString g_sStructsPath;
+    XBinary *g_pBinary;
+    IOMODE g_ioMode;
 };
 
 #endif // XDYNSTRUCTSENGINE_H

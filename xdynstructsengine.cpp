@@ -25,6 +25,22 @@ XDynStructsEngine::XDynStructsEngine(QObject *pParent) : QObject(pParent)
     g_nProcessId=0;
     g_pDevice=nullptr;
     g_pXOptions=nullptr;
+    g_hProcess=0;
+    g_pBinary=nullptr;
+    g_ioMode=IOMODE_DEVICE;
+}
+
+XDynStructsEngine::~XDynStructsEngine()
+{
+    if(g_nProcessId&&g_hProcess)
+    {
+        XProcess::closeProcess(g_hProcess);
+    }
+
+    if(g_pDevice&&g_pBinary)
+    {
+        delete g_pBinary;
+    }
 }
 
 void XDynStructsEngine::adjust()
@@ -72,15 +88,29 @@ void XDynStructsEngine::adjust()
     g_sStructsPath=sStructsPath;
 }
 
-void XDynStructsEngine::setProcessId(qint64 nProcessId)
+void XDynStructsEngine::setProcessId(qint64 nProcessId, IOMODE ioMode)
 {
     g_nProcessId=nProcessId;
+
+    if(g_nProcessId)
+    {
+        g_hProcess=XProcess::openProcess(nProcessId);
+        g_ioMode=ioMode;
+    }
+
     adjust();
 }
 
 void XDynStructsEngine::setDevice(QIODevice *pDevice)
 {
     g_pDevice=pDevice;
+
+    if(g_pDevice)
+    {
+        g_pBinary=new XBinary(pDevice);
+        g_ioMode=IOMODE_DEVICE;
+    }
+
     adjust();
 }
 
@@ -99,24 +129,12 @@ QIODevice *XDynStructsEngine::getDevice()
     return g_pDevice;
 }
 
-XDynStructsEngine::INFO XDynStructsEngine::getInfo(qint64 nAddress,QString sStructName,STRUCTTYPE structType,qint32 nCount)
+XDynStructsEngine::INFO XDynStructsEngine::getInfo(quint64 nAddress,QString sStructName,STRUCTTYPE structType,qint32 nCount)
 {
     INFO result={};
 
     if(sStructName!="")
     {
-        void *pHandle=nullptr;
-        XBinary *pBinary=nullptr;
-
-        if(g_nProcessId)
-        {
-            pHandle=XProcess::openProcess(g_nProcessId);
-        }
-        else if(g_pDevice)
-        {
-            pBinary=new XBinary(g_pDevice);
-        }
-
         if(structType==STRUCTTYPE_VARIABLE)
         {
             DYNSTRUCT dynStruct=getDynStructByName(sStructName);
@@ -140,9 +158,9 @@ XDynStructsEngine::INFO XDynStructsEngine::getInfo(qint64 nAddress,QString sStru
                         infoRecord.sType=position.sType;
                         infoRecord.sName=position.sName;
 
-                        infoRecord.sValue=getValue(pHandle,pBinary,infoRecord.nAddress,position.nSize,position.recordType,position.nBitOffset,position.nBitSize);
+                        infoRecord.sValue=getValue(infoRecord.nAddress,position.nSize,position.recordType,position.nBitOffset,position.nBitSize);
                         infoRecord.sValueData=getValueData(infoRecord.nAddress,position.recordType,position.sType,infoRecord.sValue,position.nArrayCount);
-                        infoRecord.sComment=getComment(pHandle,pBinary,infoRecord.nAddress,sStructName,infoRecord.sType,infoRecord.sName);
+                        infoRecord.sComment=getComment(infoRecord.nAddress,sStructName,infoRecord.sType,infoRecord.sName);
 
                         result.listRecords.append(infoRecord);
                     }
@@ -158,9 +176,9 @@ XDynStructsEngine::INFO XDynStructsEngine::getInfo(qint64 nAddress,QString sStru
                         infoRecord.sType=dynStruct.sName;
                         infoRecord.sName=QString("%1[%2]").arg(tr("Value"),QString::number(i));
 
-                        infoRecord.sValue=getValue(pHandle,pBinary,infoRecord.nAddress,dynStruct.nSize,dynStruct.recordType,0,0);
+                        infoRecord.sValue=getValue(infoRecord.nAddress,dynStruct.nSize,dynStruct.recordType,0,0);
                         infoRecord.sValueData=getValueData(infoRecord.nAddress,dynStruct.recordType,infoRecord.sType,infoRecord.sValue,1);
-                        infoRecord.sComment=getComment(pHandle,pBinary,infoRecord.nAddress,sStructName,infoRecord.sType,infoRecord.sName);
+                        infoRecord.sComment=getComment(infoRecord.nAddress,sStructName,infoRecord.sType,infoRecord.sName);
 
                         result.listRecords.append(infoRecord);
                     }
@@ -182,20 +200,11 @@ XDynStructsEngine::INFO XDynStructsEngine::getInfo(qint64 nAddress,QString sStru
                 infoRecord.sType=sStructName+" *";
                 infoRecord.sName=QString("Value[%1]").arg(i); // mb TODO translate
 
-                infoRecord.sValue=getValue(pHandle,pBinary,infoRecord.nAddress,nPointerSize,RECORDTYPE_POINTER,0,0);
+                infoRecord.sValue=getValue(infoRecord.nAddress,nPointerSize,RECORDTYPE_POINTER,0,0);
                 infoRecord.sValueData=getValueData(infoRecord.nAddress,RECORDTYPE_POINTER,infoRecord.sType,infoRecord.sValue,1);
 
                 result.listRecords.append(infoRecord);
             }
-        }
-
-        if(pHandle)
-        {
-            XProcess::closeProcess(pHandle);
-        }
-        else if(g_pDevice)
-        {
-            delete pBinary;
         }
     }
     else
@@ -333,7 +342,7 @@ QList<XDynStructsEngine::DYNSTRUCT> *XDynStructsEngine::getStructs()
     return &g_listDynStructs;
 }
 
-QString XDynStructsEngine::getValue(void *pProcess,XBinary *pBinary,qint64 nAddress,qint64 nSize,RECORDTYPE recordType,qint32 nBitOffset,qint32 nBitSize)
+QString XDynStructsEngine::getValue(quint64 nAddress, quint64 nSize, RECORDTYPE recordType, qint32 nBitOffset, qint32 nBitSize)
 {
     // TODO Endian
     QString sResult;
@@ -344,13 +353,13 @@ QString XDynStructsEngine::getValue(void *pProcess,XBinary *pBinary,qint64 nAddr
         {
             quint8 nValue=0;
 
-            if(pProcess)
+            if(g_hProcess)
             {
-                nValue=XProcess::read_uint8(pProcess,nAddress);
+                nValue=XProcess::read_uint8(g_hProcess,nAddress);
             }
-            else if(pBinary)
+            else if(g_pBinary)
             {
-                nValue=pBinary->read_uint8(nAddress);
+                nValue=g_pBinary->read_uint8(nAddress);
             }
 
             nValue=XBinary::getBits_uint8(nValue,nBitOffset,nBitSize);
@@ -361,13 +370,13 @@ QString XDynStructsEngine::getValue(void *pProcess,XBinary *pBinary,qint64 nAddr
         {
             quint16 nValue=0;
 
-            if(pProcess)
+            if(g_hProcess)
             {
-                nValue=XProcess::read_uint16(pProcess,nAddress);
+                nValue=XProcess::read_uint16(g_hProcess,nAddress);
             }
-            else if(pBinary)
+            else if(g_pBinary)
             {
-                nValue=pBinary->read_uint16(nAddress);
+                nValue=g_pBinary->read_uint16(nAddress);
             }
 
             nValue=XBinary::getBits_uint16(nValue,nBitOffset,nBitSize);
@@ -378,13 +387,13 @@ QString XDynStructsEngine::getValue(void *pProcess,XBinary *pBinary,qint64 nAddr
         {
             quint32 nValue=0;
 
-            if(pProcess)
+            if(g_hProcess)
             {
-                nValue=XProcess::read_uint32(pProcess,nAddress);
+                nValue=XProcess::read_uint32(g_hProcess,nAddress);
             }
-            else if(pBinary)
+            else if(g_pBinary)
             {
-                nValue=pBinary->read_uint32(nAddress);
+                nValue=g_pBinary->read_uint32(nAddress);
             }
 
             nValue=XBinary::getBits_uint32(nValue,nBitOffset,nBitSize);
@@ -395,13 +404,13 @@ QString XDynStructsEngine::getValue(void *pProcess,XBinary *pBinary,qint64 nAddr
         {
             quint64 nValue=0;
 
-            if(pProcess)
+            if(g_hProcess)
             {
-                nValue=XProcess::read_uint64(pProcess,nAddress);
+                nValue=XProcess::read_uint64(g_hProcess,nAddress);
             }
-            else if(pBinary)
+            else if(g_pBinary)
             {
-                nValue=pBinary->read_uint64(nAddress);
+                nValue=g_pBinary->read_uint64(nAddress);
             }
 
             nValue=XBinary::getBits_uint64(nValue,nBitOffset,nBitSize);
@@ -417,7 +426,7 @@ QString XDynStructsEngine::getValue(void *pProcess,XBinary *pBinary,qint64 nAddr
     return sResult;
 }
 
-QString XDynStructsEngine::getValueData(qint64 nAddress,RECORDTYPE recordType,QString sType,QString sValue,qint32 nArrayCount)
+QString XDynStructsEngine::getValueData(quint64 nAddress, RECORDTYPE recordType, QString sType, QString sValue, qint32 nArrayCount)
 {
     QString sResult;
 
@@ -445,50 +454,50 @@ QString XDynStructsEngine::getValueData(qint64 nAddress,RECORDTYPE recordType,QS
     return sResult;
 }
 
-QString XDynStructsEngine::getComment(void *pProcess,XBinary *pBinary,qint64 nAddress,QString sStructName,QString sType,QString sName)
+QString XDynStructsEngine::getComment(quint64 nAddress, QString sStructName, QString sType, QString sName)
 {
     QString sResult;
 
     if(sType=="struct _UNICODE_STRING")
     {
         quint16 nStringSize=0;
-        qint64 nStringAddress=0;
+        quint64 nStringAddress=0;
         QString sString;
 
-        if(pProcess)
+        if(g_hProcess)
         {
-            nStringSize=XProcess::read_uint16(pProcess,nAddress);
+            nStringSize=XProcess::read_uint16(g_hProcess,nAddress);
 
             if(sizeof(void *)==8)
             {
-                nStringAddress=XProcess::read_uint64(pProcess,nAddress+8);
+                nStringAddress=XProcess::read_uint64(g_hProcess,nAddress+8);
             }
             else
             {
-                nStringAddress=XProcess::read_uint32(pProcess,nAddress+4);
+                nStringAddress=XProcess::read_uint32(g_hProcess,nAddress+4);
             }
         }
-        else if(pBinary)
+        else if(g_pBinary)
         {
-            nStringSize=pBinary->read_uint16(nAddress);
+            nStringSize=g_pBinary->read_uint16(nAddress);
 
             if(sizeof(void *)==8)
             {
-                nStringAddress=pBinary->read_uint64(nAddress+8);
+                nStringAddress=g_pBinary->read_uint64(nAddress+8);
             }
             else
             {
-                nStringAddress=pBinary->read_uint32(nAddress+4);
+                nStringAddress=g_pBinary->read_uint32(nAddress+4);
             }
         }
 
-        if(pProcess)
+        if(g_hProcess)
         {
-            sString=XProcess::read_unicodeString(pProcess,nStringAddress,nStringSize);
+            sString=XProcess::read_unicodeString(g_hProcess,nStringAddress,nStringSize);
         }
-        else if(pBinary)
+        else if(g_pBinary)
         {
-            sString=pBinary->read_unicodeString(nStringAddress,nStringSize);
+            sString=g_pBinary->read_unicodeString(nStringAddress,nStringSize);
         }
 
         sResult=QString("\"%1\"").arg(sString);
@@ -498,30 +507,30 @@ QString XDynStructsEngine::getComment(void *pProcess,XBinary *pBinary,qint64 nAd
     {
         if(sName=="InLoadOrderModuleList")
         {
-            sResult=createListEntryLinks(pProcess,pBinary,nAddress,"struct _LDR_DATA_TABLE_ENTRY",0*(2*sizeof(void *)));
+            sResult=createListEntryLinks(nAddress,"struct _LDR_DATA_TABLE_ENTRY",0*(2*sizeof(void *)));
         }
         else if(sName=="InMemoryOrderModuleList")
         {
-            sResult=createListEntryLinks(pProcess,pBinary,nAddress,"struct _LDR_DATA_TABLE_ENTRY",1*(2*sizeof(void *)));
+            sResult=createListEntryLinks(nAddress,"struct _LDR_DATA_TABLE_ENTRY",1*(2*sizeof(void *)));
         }
         else if(sName=="InInitializationOrderModuleList")
         {
-            sResult=createListEntryLinks(pProcess,pBinary,nAddress,"struct _LDR_DATA_TABLE_ENTRY",2*(2*sizeof(void *)));
+            sResult=createListEntryLinks(nAddress,"struct _LDR_DATA_TABLE_ENTRY",2*(2*sizeof(void *)));
         }
     }
     else if(sStructName=="struct _LDR_DATA_TABLE_ENTRY")
     {
         if(sName=="InLoadOrderLinks")
         {
-            sResult=createListEntryLinks(pProcess,pBinary,nAddress,"struct _LDR_DATA_TABLE_ENTRY",0*(2*sizeof(void *)));
+            sResult=createListEntryLinks(nAddress,"struct _LDR_DATA_TABLE_ENTRY",0*(2*sizeof(void *)));
         }
         else if(sName=="InMemoryOrderLinks")
         {
-            sResult=createListEntryLinks(pProcess,pBinary,nAddress,"struct _LDR_DATA_TABLE_ENTRY",1*(2*sizeof(void *)));
+            sResult=createListEntryLinks(nAddress,"struct _LDR_DATA_TABLE_ENTRY",1*(2*sizeof(void *)));
         }
         else if(sName=="InInitializationOrderLinks")
         {
-            sResult=createListEntryLinks(pProcess,pBinary,nAddress,"struct _LDR_DATA_TABLE_ENTRY",2*(2*sizeof(void *)));
+            sResult=createListEntryLinks(nAddress,"struct _LDR_DATA_TABLE_ENTRY",2*(2*sizeof(void *)));
         }
 //        else if(sName=="InProgressLinks")
 //        {
@@ -580,37 +589,37 @@ XDynStructsEngine::RECORDTYPE XDynStructsEngine::getRecordType(QString sType)
     return result;
 }
 
-QString XDynStructsEngine::createListEntryLinks(void *pProcess,XBinary *pBinary,qint64 nAddress,QString sStructName,qint64 nDeltaOffset)
+QString XDynStructsEngine::createListEntryLinks(quint64 nAddress, QString sStructName, qint64 nDeltaOffset)
 {
     QString sResult;
 
-    qint64 nFlink=0;
-    qint64 nBlink=0;
+    quint64 nFlink=0;
+    quint64 nBlink=0;
 
     if(sizeof(void *)==8)
     {
-        if(pProcess)
+        if(g_hProcess)
         {
-            nFlink=XProcess::read_uint64(pProcess,nAddress);
-            nBlink=XProcess::read_uint64(pProcess,nAddress+8);
+            nFlink=XProcess::read_uint64(g_hProcess,nAddress);
+            nBlink=XProcess::read_uint64(g_hProcess,nAddress+8);
         }
-        else if(pBinary)
+        else if(g_pBinary)
         {
-            nFlink=pBinary->read_uint64(nAddress);
-            nBlink=pBinary->read_uint64(nAddress+8);
+            nFlink=g_pBinary->read_uint64(nAddress);
+            nBlink=g_pBinary->read_uint64(nAddress+8);
         }
     }
     else
     {
-        if(pProcess)
+        if(g_hProcess)
         {
-            nFlink=XProcess::read_uint32(pProcess,nAddress);
-            nBlink=XProcess::read_uint32(pProcess,nAddress+4);
+            nFlink=XProcess::read_uint32(g_hProcess,nAddress);
+            nBlink=XProcess::read_uint32(g_hProcess,nAddress+4);
         }
-        else if(pBinary)
+        else if(g_pBinary)
         {
-            nFlink=pBinary->read_uint32(nAddress);
-            nBlink=pBinary->read_uint32(nAddress+4);
+            nFlink=g_pBinary->read_uint32(nAddress);
+            nBlink=g_pBinary->read_uint32(nAddress+4);
         }
     }
 
@@ -620,6 +629,18 @@ QString XDynStructsEngine::createListEntryLinks(void *pProcess,XBinary *pBinary,
     sResult=QString("<a href=\"%1\">Flink</a> <a href=\"%2\">Blink</a>").arg(sFlink,sBlink);
 
     return sResult;
+}
+
+XIODevice *XDynStructsEngine::createIODevice(quint64 nAddress, quint64 nSize)
+{
+    XIODevice *pResult=nullptr;
+
+    if(g_ioMode==IOMODE_PROCESSUSER)
+    {
+        pResult=new XProcess(g_nProcessId,nAddress,nSize);
+    }
+
+    return pResult;
 }
 
 #ifdef Q_OS_WIN

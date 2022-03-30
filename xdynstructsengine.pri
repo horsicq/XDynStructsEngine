@@ -7,6 +7,10 @@ HEADERS += \
 SOURCES += \
     $$PWD/xdynstructsengine.cpp
 
+contains(XCONFIG, use_xwiniodriver) {
+    DEFINES += USE_XWINIODRIVER
+}
+
 !contains(XCONFIG, xformats) {
     XCONFIG += xformats
     include($$PWD/../Formats/xformats.pri)
@@ -21,6 +25,17 @@ SOURCES += \
     XCONFIG += dialogtextinfo
     include($$PWD/../FormatDialogs/dialogtextinfo.pri)
 }
+
+win32 {
+    contains(XCONFIG, use_xwiniodriver) {
+        DEFINES += USE_XWINIODRIVER
+        !contains(XCONFIG, xwiniodriver) {
+            XCONFIG += xwiniodriver
+            include($$PWD/../XWinIODriver/xwiniodriver.pri)
+        }
+    }
+}
+
 # TODO cmake
 DISTFILES += \
     $$PWD/LICENSE \
