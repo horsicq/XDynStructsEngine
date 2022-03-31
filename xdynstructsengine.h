@@ -117,6 +117,7 @@ public:
     void setProcessId(qint64 nProcessId,IOMODE ioMode);
     void setDevice(QIODevice *pDevice);
     void setOptions(XOptions *pXOptions);
+    IOMODE getIOMode();
     qint64 getProcessId();
     QIODevice *getDevice();
     INFO getInfo(quint64 nAddress,QString sStructName,STRUCTTYPE structType,qint32 nCount);
@@ -135,6 +136,8 @@ private:
 #ifdef Q_OS_WIN
     INFORECORD getPEB(qint64 nProcessId);
     QList<INFORECORD> getTEBs(qint64 nProcessId);
+    INFORECORD getEPROCESS(qint64 nProcessId);
+    QList<INFORECORD> getKPCRs(qint64 nProcessId);
 #endif
 
 signals:
@@ -147,6 +150,7 @@ private:
     QIODevice *g_pDevice;
     qint64 g_nProcessId;
     void *g_hProcess;
+    void *g_hDriver;
     QString g_sStructsPath;
     XBinary *g_pBinary;
     IOMODE g_ioMode;
