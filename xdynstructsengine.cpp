@@ -109,7 +109,7 @@ void XDynStructsEngine::adjust()
     g_sStructsPath=sStructsPath;
 }
 
-void XDynStructsEngine::setProcessId(qint64 nProcessId, IOMODE ioMode)
+void XDynStructsEngine::setProcessId(qint64 nProcessId,IOMODE ioMode)
 {
     g_nProcessId=nProcessId;
 
