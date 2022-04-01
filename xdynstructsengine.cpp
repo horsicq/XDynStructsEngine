@@ -398,7 +398,7 @@ QList<XDynStructsEngine::DYNSTRUCT> *XDynStructsEngine::getStructs()
     return &g_listDynStructs;
 }
 
-QString XDynStructsEngine::getValue(quint64 nAddress, quint64 nSize, RECORDTYPE recordType, qint32 nBitOffset, qint32 nBitSize)
+QString XDynStructsEngine::getValue(quint64 nAddress,quint64 nSize,RECORDTYPE recordType,qint32 nBitOffset,qint32 nBitSize)
 {
     // TODO Endian
     QString sResult;
