@@ -558,7 +558,7 @@ QString XDynStructsEngine::getValueData(quint64 nAddress, RECORDTYPE recordType,
     return sResult;
 }
 
-QString XDynStructsEngine::getComment(quint64 nAddress, QString sStructName, QString sType, QString sName)
+QString XDynStructsEngine::getComment(quint64 nAddress,QString sStructName,QString sType,QString sName)
 {
     QString sResult;
 
