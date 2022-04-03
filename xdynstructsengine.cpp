@@ -797,7 +797,7 @@ QString XDynStructsEngine::createListEntryLinks(quint64 nAddress,QString sStruct
     return sResult;
 }
 
-XIODevice *XDynStructsEngine::createIODevice(quint64 nAddress, quint64 nSize)
+XIODevice *XDynStructsEngine::createIODevice(quint64 nAddress,quint64 nSize)
 {
     XIODevice *pResult=nullptr;
 
