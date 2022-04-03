@@ -530,7 +530,7 @@ QString XDynStructsEngine::getValue(quint64 nAddress,quint64 nSize,RECORDTYPE re
     return sResult;
 }
 
-QString XDynStructsEngine::getValueData(quint64 nAddress, RECORDTYPE recordType, QString sType, QString sValue, qint32 nArrayCount)
+QString XDynStructsEngine::getValueData(quint64 nAddress,RECORDTYPE recordType,QString sType,QString sValue,qint32 nArrayCount)
 {
     QString sResult;
 
