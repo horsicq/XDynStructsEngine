@@ -73,7 +73,7 @@ void XDynStructsEngine::adjust()
         XBinary::OSINFO osInfo=XProcess::getOsInfo();
 
     #ifdef QT_DEBUG
-        qDebug("Build: %s",osInfo.sBuild.toLatin1().data());
+        qDebug("OS Build: %s",osInfo.sBuild.toLatin1().data());
     #endif
 
         // Load structs
