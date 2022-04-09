@@ -39,12 +39,6 @@ class XDynStructsEngine : public QObject
     // TODO user/Kernel
 
 public:
-//    struct OPTIONS
-//    {
-//        bool bSystem;
-//        bool bGeneral;
-//        bool bCustom;
-//    };
 
     enum IOMODE
     {
