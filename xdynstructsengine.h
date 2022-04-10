@@ -37,12 +37,13 @@ class XDynStructsEngine : public QObject
     Q_OBJECT
 
     // TODO user/Kernel
-
+    // TODO def XPROCESS
 public:
 
     enum IOMODE
     {
-        IOMODE_DEVICE=0,
+        IOMODE_UNKNOWN=0,
+        IOMODE_DEVICE,
         IOMODE_PROCESS_USER,
     #ifdef USE_XWINIODRIVER
         IOMODE_PROCESS_KERNEL

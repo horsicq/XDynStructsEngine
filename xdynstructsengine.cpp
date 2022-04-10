@@ -28,7 +28,7 @@ XDynStructsEngine::XDynStructsEngine(QObject *pParent) : QObject(pParent)
     g_pDevice=nullptr;
     g_pXOptions=nullptr;
     g_pBinary=nullptr;
-    g_ioMode=IOMODE_DEVICE;
+    g_ioMode=IOMODE_UNKNOWN;
 }
 
 XDynStructsEngine::~XDynStructsEngine()
