@@ -38,6 +38,7 @@ class XDynStructsEngine : public QObject
 
     // TODO user/Kernel
     // TODO def XPROCESS !!!
+    // TODO create for HEX
 public:
 
     enum IOMODE
