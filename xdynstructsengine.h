@@ -125,7 +125,6 @@ public:
     DYNSTRUCT getDynStructByName(QString sName);
     static RECORDTYPE getRecordType(QString sType);
     QString createListEntryLinks(quint64 nAddress,QString sStructName,qint64 nDeltaOffset);
-
     XIODevice *createIODevice(quint64 nAddress,quint64 nSize);
 
 private:
