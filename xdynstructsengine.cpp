@@ -707,6 +707,7 @@ XDynStructsEngine::RECORDTYPE XDynStructsEngine::getRecordType(QString sType)
 {
     RECORDTYPE result=RECORDTYPE_AUTO;
 
+    // TODO more
     if( (sType=="unsigned char")||
         (sType=="unsigned short")||
         (sType=="unsigned int")||
