@@ -143,8 +143,8 @@ private:
 //    OPTIONS g_options;
     XOptions *g_pXOptions;
     QIODevice *g_pDevice;
-    qint64 g_nProcessId;
-    void *g_hProcess;
+    X_ID g_nProcessId;
+    X_HANDLE g_hProcess;
     void *g_hDriver;
     QString g_sStructsPath;
     XBinary *g_pBinary;
