@@ -852,7 +852,7 @@ QList<XDynStructsEngine::INFORECORD> XDynStructsEngine::getTEBs(qint64 nProcessI
 
     QList<qint64> listTEBAddresses=XProcess::getTEBAddresses(nProcessId);
 
-    int nNumberOfThreads=listTEBAddresses.count();
+    qint32 nNumberOfThreads=listTEBAddresses.count();
 
     for(qint32 i=0;i<nNumberOfThreads;i++)
     {
@@ -897,7 +897,7 @@ QList<XDynStructsEngine::INFORECORD> XDynStructsEngine::getKPCRs(qint64 nProcess
 
     QList<quint64> listKPCRAddresses=XWinIODriver::getKPCRAddresses(g_hDriver,nProcessId);
 
-    int nNumberOfRecords=listKPCRAddresses.count();
+    qint32 nNumberOfRecords=listKPCRAddresses.count();
 
     for(qint32 i=0;i<nNumberOfRecords;i++)
     {
