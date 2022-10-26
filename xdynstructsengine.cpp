@@ -284,6 +284,7 @@ QList<XDynStructsEngine::DYNSTRUCT> XDynStructsEngine::loadFile(QString sFileNam
 
     QFile file;
     file.setFileName(sFileName);
+
     if(file.open(QIODevice::ReadOnly|QIODevice::Text))
     {
         QString sJsonData=file.readAll();
