@@ -7,8 +7,8 @@
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -24,6 +24,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+
 #include "xbinary.h"
 #include "xhtml.h"
 #include "xoptions.h"
@@ -32,36 +33,31 @@
 #include "xwiniodriver.h"
 #endif
 
-class XDynStructsEngine : public QObject
-{
+class XDynStructsEngine : public QObject {
     Q_OBJECT
 
     // TODO user/Kernel
     // TODO def XPROCESS !!!
     // TODO create for HEX
-public:
-
-    enum IOMODE
-    {
-        IOMODE_UNKNOWN=0,
+   public:
+    enum IOMODE {
+        IOMODE_UNKNOWN = 0,
         IOMODE_DEVICE,
         IOMODE_PROCESS_USER,
-    #ifdef USE_XWINIODRIVER
+#ifdef USE_XWINIODRIVER
         IOMODE_PROCESS_KERNEL
-    #endif
+#endif
     };
 
-    enum RECORDTYPE
-    {
-        RECORDTYPE_AUTO=0,
+    enum RECORDTYPE {
+        RECORDTYPE_AUTO = 0,
         RECORDTYPE_NONE,
         RECORDTYPE_VARIABLE,
         RECORDTYPE_POINTER,
         RECORDTYPE_ARRAY
     };
 
-    struct DSPOSITION
-    {
+    struct DSPOSITION {
         qint64 nOffset;
         qint64 nSize;
         qint32 nBitOffset;
@@ -72,8 +68,7 @@ public:
         qint32 nArrayCount;
     };
 
-    struct DYNSTRUCT
-    {
+    struct DYNSTRUCT {
         QString sIUID;
         QString sName;
         QString sInfoFilePrefix;
@@ -83,51 +78,50 @@ public:
         QList<DSPOSITION> listPositions;
     };
 
-    struct INFORECORD
-    {
-        quint64 nAddress;    // Do not show if -1
-        quint64 nOffset;     // Do not show if -1; Offset from begin
+    struct INFORECORD {
+        quint64 nAddress;  // Do not show if -1
+        quint64 nOffset;   // Do not show if -1; Offset from begin
         QString sType;
         QString sName;
         QString sValue;
-        QString sValueData; // If not empty  -> active link
+        QString sValueData;  // If not empty  -> active link
         QString sComment;
     };
 
-    struct INFO
-    {
+    struct INFO {
         bool bIsValid;
         QList<INFORECORD> listRecords;
     };
 
-    enum STRUCTTYPE
-    {
-        STRUCTTYPE_VARIABLE=0,
-        STRUCTTYPE_POINTER
-    };
+    enum STRUCTTYPE { STRUCTTYPE_VARIABLE = 0, STRUCTTYPE_POINTER };
 
-    explicit XDynStructsEngine(QObject *pParent=nullptr);
+    explicit XDynStructsEngine(QObject *pParent = nullptr);
     ~XDynStructsEngine();
 
     void adjust();
-    void setProcessId(qint64 nProcessId,IOMODE ioMode);
+    void setProcessId(qint64 nProcessId, IOMODE ioMode);
     void setDevice(QIODevice *pDevice);
     void setOptions(XOptions *pXOptions);
     IOMODE getIOMode();
     qint64 getProcessId();
     QIODevice *getDevice();
-    INFO getInfo(quint64 nAddress,QString sStructName,STRUCTTYPE structType,qint32 nCount);
+    INFO getInfo(quint64 nAddress, QString sStructName, STRUCTTYPE structType,
+                 qint32 nCount);
     QList<DYNSTRUCT> loadFile(QString sFileName);
     QList<DYNSTRUCT> *getStructs();
-    QString getValue(quint64 nAddress,quint64 nSize,RECORDTYPE recordType,qint32 nBitOffset,qint32 nBitSize);
-    QString getValueData(quint64 nAddress,RECORDTYPE recordType,QString sType,QString sValue,qint32 nArrayCount);
-    QString getComment(quint64 nAddress,QString sStructName,QString sType,QString sName);
+    QString getValue(quint64 nAddress, quint64 nSize, RECORDTYPE recordType,
+                     qint32 nBitOffset, qint32 nBitSize);
+    QString getValueData(quint64 nAddress, RECORDTYPE recordType, QString sType,
+                         QString sValue, qint32 nArrayCount);
+    QString getComment(quint64 nAddress, QString sStructName, QString sType,
+                       QString sName);
     DYNSTRUCT getDynStructByName(QString sName);
     static RECORDTYPE getRecordType(QString sType);
-    QString createListEntryLinks(quint64 nAddress,QString sStructName,qint64 nDeltaOffset);
-    XIODevice *createIODevice(quint64 nAddress,quint64 nSize);
+    QString createListEntryLinks(quint64 nAddress, QString sStructName,
+                                 qint64 nDeltaOffset);
+    XIODevice *createIODevice(quint64 nAddress, quint64 nSize);
 
-private:
+   private:
 #ifdef Q_OS_WIN
     INFORECORD getPEB(qint64 nProcessId);
     QList<INFORECORD> getTEBs(qint64 nProcessId);
@@ -135,12 +129,12 @@ private:
     QList<INFORECORD> getKPCRs(qint64 nProcessId);
 #endif
 
-signals:
+   signals:
     void errorMessage(QString sErrorMessage);
 
-private:
+   private:
     QList<DYNSTRUCT> g_listDynStructs;
-//    OPTIONS g_options;
+    //    OPTIONS g_options;
     XOptions *g_pXOptions;
     QIODevice *g_pDevice;
     X_ID g_nProcessId;
@@ -151,4 +145,4 @@ private:
     IOMODE g_ioMode;
 };
 
-#endif // XDYNSTRUCTSENGINE_H
+#endif  // XDYNSTRUCTSENGINE_H
