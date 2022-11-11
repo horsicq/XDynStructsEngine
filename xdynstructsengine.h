@@ -39,7 +39,7 @@ class XDynStructsEngine : public QObject {
     // TODO user/Kernel
     // TODO def XPROCESS !!!
     // TODO create for HEX
-   public:
+public:
     enum IOMODE {
         IOMODE_UNKNOWN = 0,
         IOMODE_DEVICE,
@@ -93,7 +93,10 @@ class XDynStructsEngine : public QObject {
         QList<INFORECORD> listRecords;
     };
 
-    enum STRUCTTYPE { STRUCTTYPE_VARIABLE = 0, STRUCTTYPE_POINTER };
+    enum STRUCTTYPE {
+        STRUCTTYPE_VARIABLE = 0,
+        STRUCTTYPE_POINTER
+    };
 
     explicit XDynStructsEngine(QObject *pParent = nullptr);
     ~XDynStructsEngine();
@@ -105,23 +108,18 @@ class XDynStructsEngine : public QObject {
     IOMODE getIOMode();
     qint64 getProcessId();
     QIODevice *getDevice();
-    INFO getInfo(quint64 nAddress, QString sStructName, STRUCTTYPE structType,
-                 qint32 nCount);
+    INFO getInfo(quint64 nAddress, QString sStructName, STRUCTTYPE structType, qint32 nCount);
     QList<DYNSTRUCT> loadFile(QString sFileName);
     QList<DYNSTRUCT> *getStructs();
-    QString getValue(quint64 nAddress, quint64 nSize, RECORDTYPE recordType,
-                     qint32 nBitOffset, qint32 nBitSize);
-    QString getValueData(quint64 nAddress, RECORDTYPE recordType, QString sType,
-                         QString sValue, qint32 nArrayCount);
-    QString getComment(quint64 nAddress, QString sStructName, QString sType,
-                       QString sName);
+    QString getValue(quint64 nAddress, quint64 nSize, RECORDTYPE recordType, qint32 nBitOffset, qint32 nBitSize);
+    QString getValueData(quint64 nAddress, RECORDTYPE recordType, QString sType, QString sValue, qint32 nArrayCount);
+    QString getComment(quint64 nAddress, QString sStructName, QString sType, QString sName);
     DYNSTRUCT getDynStructByName(QString sName);
     static RECORDTYPE getRecordType(QString sType);
-    QString createListEntryLinks(quint64 nAddress, QString sStructName,
-                                 qint64 nDeltaOffset);
+    QString createListEntryLinks(quint64 nAddress, QString sStructName, qint64 nDeltaOffset);
     XIODevice *createIODevice(quint64 nAddress, quint64 nSize);
 
-   private:
+private:
 #ifdef Q_OS_WIN
     INFORECORD getPEB(qint64 nProcessId);
     QList<INFORECORD> getTEBs(qint64 nProcessId);
@@ -129,10 +127,10 @@ class XDynStructsEngine : public QObject {
     QList<INFORECORD> getKPCRs(qint64 nProcessId);
 #endif
 
-   signals:
+signals:
     void errorMessage(QString sErrorMessage);
 
-   private:
+private:
     QList<DYNSTRUCT> g_listDynStructs;
     //    OPTIONS g_options;
     XOptions *g_pXOptions;
