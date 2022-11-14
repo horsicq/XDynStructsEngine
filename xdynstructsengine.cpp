@@ -565,9 +565,9 @@ XDynStructsEngine::RECORDTYPE XDynStructsEngine::getRecordType(QString sType) {
     RECORDTYPE result = RECORDTYPE_AUTO;
 
     // TODO more
-    if ((sType == "unsigned char") || (sType == "unsigned short") || (sType == "unsigned int") || (sType == "unsigned long") ||
-        (sType == "unsigned long long") || (sType == "signed char") || (sType == "signed short") || (sType == "signed int") || (sType == "signed long") ||
-        (sType == "signed long long") || (sType == "char") || (sType == "short") || (sType == "int") || (sType == "long") || (sType == "long long")) {
+    if ((sType == "unsigned char") || (sType == "unsigned short") || (sType == "unsigned int") || (sType == "unsigned long") || (sType == "unsigned long long") ||
+        (sType == "signed char") || (sType == "signed short") || (sType == "signed int") || (sType == "signed long") || (sType == "signed long long") || (sType == "char") ||
+        (sType == "short") || (sType == "int") || (sType == "long") || (sType == "long long")) {
         result = RECORDTYPE_VARIABLE;
     }
 
