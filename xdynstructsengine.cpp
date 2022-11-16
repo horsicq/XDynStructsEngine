@@ -20,7 +20,8 @@
  */
 #include "xdynstructsengine.h"
 
-XDynStructsEngine::XDynStructsEngine(QObject *pParent) : QObject(pParent) {
+XDynStructsEngine::XDynStructsEngine(QObject *pParent) : QObject(pParent)
+{
     g_nProcessId = 0;
     g_hProcess = 0;
     g_hDriver = 0;
@@ -30,7 +31,8 @@ XDynStructsEngine::XDynStructsEngine(QObject *pParent) : QObject(pParent) {
     g_ioMode = IOMODE_UNKNOWN;
 }
 
-XDynStructsEngine::~XDynStructsEngine() {
+XDynStructsEngine::~XDynStructsEngine()
+{
     if (g_nProcessId && g_hProcess) {
         if (g_ioMode == IOMODE_PROCESS_USER) {
             XProcess::closeProcess(g_hProcess);
@@ -55,7 +57,8 @@ XDynStructsEngine::~XDynStructsEngine() {
     }
 }
 
-void XDynStructsEngine::adjust() {
+void XDynStructsEngine::adjust()
+{
     QString sStructsPath = XBinary::convertPathName(g_pXOptions->getStructsPath());
 
     if (sStructsPath != g_sStructsPath) {
@@ -83,16 +86,21 @@ void XDynStructsEngine::adjust() {
         }
 
         //        if(options.bGeneral)
-        { g_listDynStructs.append(loadFile(sStructsPath + QDir::separator() + osInfo.sArch + QDir::separator() + QString("general.json"))); }
+        {
+            g_listDynStructs.append(loadFile(sStructsPath + QDir::separator() + osInfo.sArch + QDir::separator() + QString("general.json")));
+        }
 
         //        if(options.bCustom)
-        { g_listDynStructs.append(loadFile(sStructsPath + QDir::separator() + osInfo.sArch + QDir::separator() + QString("custom.json"))); }
+        {
+            g_listDynStructs.append(loadFile(sStructsPath + QDir::separator() + osInfo.sArch + QDir::separator() + QString("custom.json")));
+        }
     }
 
     g_sStructsPath = sStructsPath;
 }
 
-void XDynStructsEngine::setProcessId(qint64 nProcessId, IOMODE ioMode) {
+void XDynStructsEngine::setProcessId(qint64 nProcessId, IOMODE ioMode)
+{
     g_nProcessId = nProcessId;
 
     if (g_nProcessId) {
@@ -120,7 +128,8 @@ void XDynStructsEngine::setProcessId(qint64 nProcessId, IOMODE ioMode) {
     adjust();
 }
 
-void XDynStructsEngine::setDevice(QIODevice *pDevice) {
+void XDynStructsEngine::setDevice(QIODevice *pDevice)
+{
     g_pDevice = pDevice;
 
     if (g_pDevice) {
@@ -131,23 +140,28 @@ void XDynStructsEngine::setDevice(QIODevice *pDevice) {
     adjust();
 }
 
-void XDynStructsEngine::setOptions(XOptions *pXOptions) {
+void XDynStructsEngine::setOptions(XOptions *pXOptions)
+{
     g_pXOptions = pXOptions;
 }
 
-XDynStructsEngine::IOMODE XDynStructsEngine::getIOMode() {
+XDynStructsEngine::IOMODE XDynStructsEngine::getIOMode()
+{
     return g_ioMode;
 }
 
-qint64 XDynStructsEngine::getProcessId() {
+qint64 XDynStructsEngine::getProcessId()
+{
     return g_nProcessId;
 }
 
-QIODevice *XDynStructsEngine::getDevice() {
+QIODevice *XDynStructsEngine::getDevice()
+{
     return g_pDevice;
 }
 
-XDynStructsEngine::INFO XDynStructsEngine::getInfo(quint64 nAddress, QString sStructName, STRUCTTYPE structType, qint32 nCount) {
+XDynStructsEngine::INFO XDynStructsEngine::getInfo(quint64 nAddress, QString sStructName, STRUCTTYPE structType, qint32 nCount)
+{
     INFO result = {};
 
     if (sStructName != "") {
@@ -231,7 +245,8 @@ XDynStructsEngine::INFO XDynStructsEngine::getInfo(quint64 nAddress, QString sSt
     return result;
 }
 
-QList<XDynStructsEngine::DYNSTRUCT> XDynStructsEngine::loadFile(QString sFileName) {
+QList<XDynStructsEngine::DYNSTRUCT> XDynStructsEngine::loadFile(QString sFileName)
+{
     QList<DYNSTRUCT> listResult;
 
     QFile file;
@@ -333,11 +348,13 @@ QList<XDynStructsEngine::DYNSTRUCT> XDynStructsEngine::loadFile(QString sFileNam
     return listResult;
 }
 
-QList<XDynStructsEngine::DYNSTRUCT> *XDynStructsEngine::getStructs() {
+QList<XDynStructsEngine::DYNSTRUCT> *XDynStructsEngine::getStructs()
+{
     return &g_listDynStructs;
 }
 
-QString XDynStructsEngine::getValue(quint64 nAddress, quint64 nSize, RECORDTYPE recordType, qint32 nBitOffset, qint32 nBitSize) {
+QString XDynStructsEngine::getValue(quint64 nAddress, quint64 nSize, RECORDTYPE recordType, qint32 nBitOffset, qint32 nBitSize)
+{
     // TODO Endian
     QString sResult;
 
@@ -434,7 +451,8 @@ QString XDynStructsEngine::getValue(quint64 nAddress, quint64 nSize, RECORDTYPE 
     return sResult;
 }
 
-QString XDynStructsEngine::getValueData(quint64 nAddress, RECORDTYPE recordType, QString sType, QString sValue, qint32 nArrayCount) {
+QString XDynStructsEngine::getValueData(quint64 nAddress, RECORDTYPE recordType, QString sType, QString sValue, qint32 nArrayCount)
+{
     QString sResult;
 
     if (recordType == RECORDTYPE_POINTER) {
@@ -455,7 +473,8 @@ QString XDynStructsEngine::getValueData(quint64 nAddress, RECORDTYPE recordType,
     return sResult;
 }
 
-QString XDynStructsEngine::getComment(quint64 nAddress, QString sStructName, QString sType, QString sName) {
+QString XDynStructsEngine::getComment(quint64 nAddress, QString sStructName, QString sType, QString sName)
+{
     QString sResult;
 
     if (sType == "struct _UNICODE_STRING") {
@@ -543,7 +562,8 @@ QString XDynStructsEngine::getComment(quint64 nAddress, QString sStructName, QSt
     return sResult;
 }
 
-XDynStructsEngine::DYNSTRUCT XDynStructsEngine::getDynStructByName(QString sName) {
+XDynStructsEngine::DYNSTRUCT XDynStructsEngine::getDynStructByName(QString sName)
+{
     DYNSTRUCT result = {};
 
     if (sName != "") {
@@ -561,7 +581,8 @@ XDynStructsEngine::DYNSTRUCT XDynStructsEngine::getDynStructByName(QString sName
     return result;
 }
 
-XDynStructsEngine::RECORDTYPE XDynStructsEngine::getRecordType(QString sType) {
+XDynStructsEngine::RECORDTYPE XDynStructsEngine::getRecordType(QString sType)
+{
     RECORDTYPE result = RECORDTYPE_AUTO;
 
     // TODO more
@@ -574,7 +595,8 @@ XDynStructsEngine::RECORDTYPE XDynStructsEngine::getRecordType(QString sType) {
     return result;
 }
 
-QString XDynStructsEngine::createListEntryLinks(quint64 nAddress, QString sStructName, qint64 nDeltaOffset) {
+QString XDynStructsEngine::createListEntryLinks(quint64 nAddress, QString sStructName, qint64 nDeltaOffset)
+{
     QString sResult;
 
     quint64 nFlink = 0;
@@ -626,7 +648,8 @@ QString XDynStructsEngine::createListEntryLinks(quint64 nAddress, QString sStruc
     return sResult;
 }
 
-XIODevice *XDynStructsEngine::createIODevice(quint64 nAddress, quint64 nSize) {
+XIODevice *XDynStructsEngine::createIODevice(quint64 nAddress, quint64 nSize)
+{
     XIODevice *pResult = nullptr;
 
     if (g_nProcessId) {
@@ -650,7 +673,8 @@ XIODevice *XDynStructsEngine::createIODevice(quint64 nAddress, quint64 nSize) {
 }
 
 #ifdef Q_OS_WIN
-XDynStructsEngine::INFORECORD XDynStructsEngine::getPEB(qint64 nProcessId) {
+XDynStructsEngine::INFORECORD XDynStructsEngine::getPEB(qint64 nProcessId)
+{
     INFORECORD result = {};
 
     QString sValue = "0x" + XBinary::valueToHexOS(XProcess::getPEBAddress(nProcessId));
@@ -666,7 +690,8 @@ XDynStructsEngine::INFORECORD XDynStructsEngine::getPEB(qint64 nProcessId) {
 }
 #endif
 #ifdef Q_OS_WIN
-QList<XDynStructsEngine::INFORECORD> XDynStructsEngine::getTEBs(qint64 nProcessId) {
+QList<XDynStructsEngine::INFORECORD> XDynStructsEngine::getTEBs(qint64 nProcessId)
+{
     QList<INFORECORD> listResult;
 
     QList<qint64> listTEBAddresses = XProcess::getTEBAddresses(nProcessId);
@@ -692,7 +717,8 @@ QList<XDynStructsEngine::INFORECORD> XDynStructsEngine::getTEBs(qint64 nProcessI
 }
 #endif
 #ifdef Q_OS_WIN
-XDynStructsEngine::INFORECORD XDynStructsEngine::getEPROCESS(qint64 nProcessId) {
+XDynStructsEngine::INFORECORD XDynStructsEngine::getEPROCESS(qint64 nProcessId)
+{
     INFORECORD result = {};
 
     QString sValue = "0x" + XBinary::valueToHexOS(XWinIODriver::getEPROCESSAddress(g_hDriver, nProcessId));
@@ -708,7 +734,8 @@ XDynStructsEngine::INFORECORD XDynStructsEngine::getEPROCESS(qint64 nProcessId) 
 }
 #endif
 #ifdef Q_OS_WIN
-QList<XDynStructsEngine::INFORECORD> XDynStructsEngine::getKPCRs(qint64 nProcessId) {
+QList<XDynStructsEngine::INFORECORD> XDynStructsEngine::getKPCRs(qint64 nProcessId)
+{
     QList<INFORECORD> listResult;
 
     QList<quint64> listKPCRAddresses = XWinIODriver::getKPCRAddresses(g_hDriver, nProcessId);
