@@ -20,7 +20,8 @@
  */
 #include "xdynstructsengine.h"
 
-XDynStructsEngine::XDynStructsEngine(QObject *pParent) : QObject(pParent)
+XDynStructsEngine::XDynStructsEngine(QObject *pParent)
+    : QObject(pParent)
 {
     g_nProcessId = 0;
     g_hProcess = 0;
