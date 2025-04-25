@@ -59,44 +59,44 @@ XDynStructsEngine::~XDynStructsEngine()
 
 void XDynStructsEngine::adjust()
 {
-    QString sStructsPath = XBinary::convertPathName(g_pXOptions->getStructsPath());
+//     QString sStructsPath = XBinary::convertPathName(g_pXOptions->getStructsPath());
 
-    if (sStructsPath != g_sStructsPath) {
-        XBinary::OSINFO osInfo = XProcess::getOsInfo();
+//     if (sStructsPath != g_sStructsPath) {
+//         XBinary::OSINFO osInfo = XProcess::getOsInfo();
 
-#ifdef QT_DEBUG
-        qDebug("OS Build: %s", osInfo.sBuild.toLatin1().data());
-#endif
+// #ifdef QT_DEBUG
+//         qDebug("OS Build: %s", osInfo.sBuild.toLatin1().data());
+// #endif
 
-        // Load structs
-        g_listDynStructs.clear();
+//         // Load structs
+//         g_listDynStructs.clear();
 
-        //        if(options.bSystem)
-        {
-            QString sFileName = sStructsPath + QDir::separator() + osInfo.sArch + QDir::separator() + QString("%1.json").arg(osInfo.sBuild);
+//         //        if(options.bSystem)
+//         {
+//             QString sFileName = sStructsPath + QDir::separator() + osInfo.sArch + QDir::separator() + QString("%1.json").arg(osInfo.sBuild);
 
-            if (!XBinary::isFileExists(sFileName)) {
-                if (osInfo.sBuild.contains("10.0.")) {
-                    // TODO 10.0.19041
-                    sFileName = sStructsPath + QDir::separator() + osInfo.sArch + QDir::separator() + QString("%1.json").arg("10.0.17134");
-                }
-            }
+//             if (!XBinary::isFileExists(sFileName)) {
+//                 if (osInfo.sBuild.contains("10.0.")) {
+//                     // TODO 10.0.19041
+//                     sFileName = sStructsPath + QDir::separator() + osInfo.sArch + QDir::separator() + QString("%1.json").arg("10.0.17134");
+//                 }
+//             }
 
-            g_listDynStructs.append(loadFile(sFileName));
-        }
+//             g_listDynStructs.append(loadFile(sFileName));
+//         }
 
-        //        if(options.bGeneral)
-        {
-            g_listDynStructs.append(loadFile(sStructsPath + QDir::separator() + osInfo.sArch + QDir::separator() + QString("general.json")));
-        }
+//         //        if(options.bGeneral)
+//         {
+//             g_listDynStructs.append(loadFile(sStructsPath + QDir::separator() + osInfo.sArch + QDir::separator() + QString("general.json")));
+//         }
 
-        //        if(options.bCustom)
-        {
-            g_listDynStructs.append(loadFile(sStructsPath + QDir::separator() + osInfo.sArch + QDir::separator() + QString("custom.json")));
-        }
-    }
+//         //        if(options.bCustom)
+//         {
+//             g_listDynStructs.append(loadFile(sStructsPath + QDir::separator() + osInfo.sArch + QDir::separator() + QString("custom.json")));
+//         }
+//     }
 
-    g_sStructsPath = sStructsPath;
+//     g_sStructsPath = sStructsPath;
 }
 
 void XDynStructsEngine::setProcessId(qint64 nProcessId, IOMODE ioMode)
