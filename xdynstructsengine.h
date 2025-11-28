@@ -99,7 +99,7 @@ public:
     };
 
     explicit XDynStructsEngine(QObject *pParent = nullptr);
-    ~XDynStructsEngine();
+    virtual ~XDynStructsEngine();
 
     void adjust();
     void setProcessId(qint64 nProcessId, IOMODE ioMode);
@@ -131,16 +131,16 @@ signals:
     void errorMessage(QString sErrorMessage);
 
 private:
-    QList<DYNSTRUCT> g_listDynStructs;
-    //    OPTIONS g_options;
-    XOptions *g_pXOptions;
-    QIODevice *g_pDevice;
-    X_ID g_nProcessId;
-    X_HANDLE g_hProcess;
-    void *g_hDriver;
-    QString g_sStructsPath;
-    XBinary *g_pBinary;
-    IOMODE g_ioMode;
+    QList<DYNSTRUCT> m_listDynStructs;
+    //    OPTIONS m_options;
+    XOptions *m_pXOptions;
+    QIODevice *m_pDevice;
+    X_ID m_nProcessId;
+    X_HANDLE m_hProcess;
+    void *m_hDriver;
+    QString m_sStructsPath;
+    XBinary *m_pBinary;
+    IOMODE m_ioMode;
 };
 
 #endif  // XDYNSTRUCTSENGINE_H

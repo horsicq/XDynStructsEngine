@@ -22,46 +22,46 @@
 
 XDynStructsEngine::XDynStructsEngine(QObject *pParent) : QObject(pParent)
 {
-    g_nProcessId = 0;
-    g_hProcess = 0;
-    g_hDriver = 0;
-    g_pDevice = nullptr;
-    g_pXOptions = nullptr;
-    g_pBinary = nullptr;
-    g_ioMode = IOMODE_UNKNOWN;
+    m_nProcessId = 0;
+    m_hProcess = 0;
+    m_hDriver = 0;
+    m_pDevice = nullptr;
+    m_pXOptions = nullptr;
+    m_pBinary = nullptr;
+    m_ioMode = IOMODE_UNKNOWN;
 }
 
 XDynStructsEngine::~XDynStructsEngine()
 {
-    if (g_nProcessId && g_hProcess) {
-        if (g_ioMode == IOMODE_PROCESS_USER) {
-            XProcess::closeProcess(g_hProcess);
+    if (m_nProcessId && m_hProcess) {
+        if (m_ioMode == IOMODE_PROCESS_USER) {
+            XProcess::closeProcess(m_hProcess);
         }
 #ifdef Q_OS_WIN
-        else if (g_ioMode == IOMODE_PROCESS_KERNEL) {
-            if (g_hProcess) {
-                XWinIODriver::closeProcess(g_hDriver, g_hProcess);
+        else if (m_ioMode == IOMODE_PROCESS_KERNEL) {
+            if (m_hProcess) {
+                XWinIODriver::closeProcess(m_hDriver, m_hProcess);
             }
 
-            if (g_hDriver) {
-                XWinIODriver::closeDriverDevice(g_hDriver);
+            if (m_hDriver) {
+                XWinIODriver::closeDriverDevice(m_hDriver);
             }
         }
 #endif
     }
 
-    if (g_pDevice && g_pBinary) {
-        if (g_ioMode == IOMODE_DEVICE) {
-            delete g_pBinary;
+    if (m_pDevice && m_pBinary) {
+        if (m_ioMode == IOMODE_DEVICE) {
+            delete m_pBinary;
         }
     }
 }
 
 void XDynStructsEngine::adjust()
 {
-    //     QString sStructsPath = XBinary::convertPathName(g_pXOptions->getStructsPath());
+    //     QString sStructsPath = XBinary::convertPathName(m_pXOptions->getStructsPath());
 
-    //     if (sStructsPath != g_sStructsPath) {
+    //     if (sStructsPath != m_sStructsPath) {
     //         XBinary::OSINFO osInfo = XProcess::getOsInfo();
 
     // #ifdef QT_DEBUG
@@ -69,7 +69,7 @@ void XDynStructsEngine::adjust()
     // #endif
 
     //         // Load structs
-    //         g_listDynStructs.clear();
+    //         m_listDynStructs.clear();
 
     //         //        if(options.bSystem)
     //         {
@@ -82,44 +82,44 @@ void XDynStructsEngine::adjust()
     //                 }
     //             }
 
-    //             g_listDynStructs.append(loadFile(sFileName));
+    //             m_listDynStructs.append(loadFile(sFileName));
     //         }
 
     //         //        if(options.bGeneral)
     //         {
-    //             g_listDynStructs.append(loadFile(sStructsPath + QDir::separator() + osInfo.sArch + QDir::separator() + QString("general.json")));
+    //             m_listDynStructs.append(loadFile(sStructsPath + QDir::separator() + osInfo.sArch + QDir::separator() + QString("general.json")));
     //         }
 
     //         //        if(options.bCustom)
     //         {
-    //             g_listDynStructs.append(loadFile(sStructsPath + QDir::separator() + osInfo.sArch + QDir::separator() + QString("custom.json")));
+    //             m_listDynStructs.append(loadFile(sStructsPath + QDir::separator() + osInfo.sArch + QDir::separator() + QString("custom.json")));
     //         }
     //     }
 
-    //     g_sStructsPath = sStructsPath;
+    //     m_sStructsPath = sStructsPath;
 }
 
 void XDynStructsEngine::setProcessId(qint64 nProcessId, IOMODE ioMode)
 {
-    g_nProcessId = nProcessId;
+    m_nProcessId = nProcessId;
 
-    if (g_nProcessId) {
+    if (m_nProcessId) {
         if (ioMode == IOMODE_PROCESS_USER) {
-            g_hProcess = XProcess::openProcess(nProcessId);
-            g_ioMode = IOMODE_PROCESS_USER;
+            m_hProcess = XProcess::openProcess(nProcessId);
+            m_ioMode = IOMODE_PROCESS_USER;
         }
 #ifdef Q_OS_WIN
         else if (ioMode == IOMODE_PROCESS_KERNEL) {
             QString sServiceName;
 
-            if (g_pXOptions) {
-                sServiceName = g_pXOptions->getValue(XOptions::ID_IODRIVER_SERVICENAME).toString();
+            if (m_pXOptions) {
+                sServiceName = m_pXOptions->getValue(XOptions::ID_IODRIVER_SERVICENAME).toString();
             }
 
             if (sServiceName != "") {
-                g_hDriver = XWinIODriver::openDriverDevice(sServiceName);
-                g_hProcess = XWinIODriver::openProcess(g_hDriver, nProcessId);
-                g_ioMode = IOMODE_PROCESS_KERNEL;
+                m_hDriver = XWinIODriver::openDriverDevice(sServiceName);
+                m_hProcess = XWinIODriver::openProcess(m_hDriver, nProcessId);
+                m_ioMode = IOMODE_PROCESS_KERNEL;
             }
         }
 #endif
@@ -130,11 +130,11 @@ void XDynStructsEngine::setProcessId(qint64 nProcessId, IOMODE ioMode)
 
 void XDynStructsEngine::setDevice(QIODevice *pDevice)
 {
-    g_pDevice = pDevice;
+    m_pDevice = pDevice;
 
-    if (g_pDevice) {
-        g_pBinary = new XBinary(pDevice);
-        g_ioMode = IOMODE_DEVICE;
+    if (m_pDevice) {
+        m_pBinary = new XBinary(pDevice);
+        m_ioMode = IOMODE_DEVICE;
     }
 
     adjust();
@@ -142,22 +142,22 @@ void XDynStructsEngine::setDevice(QIODevice *pDevice)
 
 void XDynStructsEngine::setOptions(XOptions *pXOptions)
 {
-    g_pXOptions = pXOptions;
+    m_pXOptions = pXOptions;
 }
 
 XDynStructsEngine::IOMODE XDynStructsEngine::getIOMode()
 {
-    return g_ioMode;
+    return m_ioMode;
 }
 
 qint64 XDynStructsEngine::getProcessId()
 {
-    return g_nProcessId;
+    return m_nProcessId;
 }
 
 QIODevice *XDynStructsEngine::getDevice()
 {
-    return g_pDevice;
+    return m_pDevice;
 }
 
 XDynStructsEngine::INFO XDynStructsEngine::getInfo(quint64 nAddress, QString sStructName, STRUCTTYPE structType, qint32 nCount)
@@ -227,16 +227,16 @@ XDynStructsEngine::INFO XDynStructsEngine::getInfo(quint64 nAddress, QString sSt
             }
         }
     } else {
-        if (g_nProcessId) {
+        if (m_nProcessId) {
 #ifdef Q_OS_WIN
-            if (g_ioMode == IOMODE_PROCESS_USER) {
+            if (m_ioMode == IOMODE_PROCESS_USER) {
                 result.bIsValid = true;
-                result.listRecords.append(getPEB(g_nProcessId));
-                result.listRecords.append(getTEBs(g_nProcessId));
-            } else if (g_ioMode == IOMODE_PROCESS_KERNEL) {
+                result.listRecords.append(getPEB(m_nProcessId));
+                result.listRecords.append(getTEBs(m_nProcessId));
+            } else if (m_ioMode == IOMODE_PROCESS_KERNEL) {
                 result.bIsValid = true;
-                result.listRecords.append(getEPROCESS(g_nProcessId));
-                //                result.listRecords.append(getKPCRs(g_nProcessId));
+                result.listRecords.append(getEPROCESS(m_nProcessId));
+                //                result.listRecords.append(getKPCRs(m_nProcessId));
             }
 #endif
         }
@@ -350,7 +350,7 @@ QList<XDynStructsEngine::DYNSTRUCT> XDynStructsEngine::loadFile(QString sFileNam
 
 QList<XDynStructsEngine::DYNSTRUCT> *XDynStructsEngine::getStructs()
 {
-    return &g_listDynStructs;
+    return &m_listDynStructs;
 }
 
 QString XDynStructsEngine::getValue(quint64 nAddress, quint64 nSize, RECORDTYPE recordType, qint32 nBitOffset, qint32 nBitSize)
@@ -362,18 +362,18 @@ QString XDynStructsEngine::getValue(quint64 nAddress, quint64 nSize, RECORDTYPE 
         if (nSize == 1) {
             quint8 nValue = 0;
 
-            if (g_hProcess) {
-                if (g_ioMode == IOMODE_PROCESS_USER) {
-                    nValue = XProcess::read_uint8(g_hProcess, nAddress);
+            if (m_hProcess) {
+                if (m_ioMode == IOMODE_PROCESS_USER) {
+                    nValue = XProcess::read_uint8(m_hProcess, nAddress);
                 }
 #ifdef Q_OS_WIN
-                else if (g_ioMode == IOMODE_PROCESS_KERNEL) {
-                    nValue = XWinIODriver::read_uint8(g_hDriver, g_hProcess, nAddress);
+                else if (m_ioMode == IOMODE_PROCESS_KERNEL) {
+                    nValue = XWinIODriver::read_uint8(m_hDriver, m_hProcess, nAddress);
                 }
 #endif
-            } else if (g_pBinary) {
-                if (g_ioMode == IOMODE_DEVICE) {
-                    nValue = g_pBinary->read_uint8(nAddress);
+            } else if (m_pBinary) {
+                if (m_ioMode == IOMODE_DEVICE) {
+                    nValue = m_pBinary->read_uint8(nAddress);
                 }
             }
 
@@ -383,18 +383,18 @@ QString XDynStructsEngine::getValue(quint64 nAddress, quint64 nSize, RECORDTYPE 
         } else if (nSize == 2) {
             quint16 nValue = 0;
 
-            if (g_hProcess) {
-                if (g_ioMode == IOMODE_PROCESS_USER) {
-                    nValue = XProcess::read_uint16(g_hProcess, nAddress);
+            if (m_hProcess) {
+                if (m_ioMode == IOMODE_PROCESS_USER) {
+                    nValue = XProcess::read_uint16(m_hProcess, nAddress);
                 }
 #ifdef Q_OS_WIN
-                else if (g_ioMode == IOMODE_PROCESS_KERNEL) {
-                    nValue = XWinIODriver::read_uint16(g_hDriver, g_hProcess, nAddress);
+                else if (m_ioMode == IOMODE_PROCESS_KERNEL) {
+                    nValue = XWinIODriver::read_uint16(m_hDriver, m_hProcess, nAddress);
                 }
 #endif
-            } else if (g_pBinary) {
-                if (g_ioMode == IOMODE_DEVICE) {
-                    nValue = g_pBinary->read_uint16(nAddress);
+            } else if (m_pBinary) {
+                if (m_ioMode == IOMODE_DEVICE) {
+                    nValue = m_pBinary->read_uint16(nAddress);
                 }
             }
 
@@ -404,18 +404,18 @@ QString XDynStructsEngine::getValue(quint64 nAddress, quint64 nSize, RECORDTYPE 
         } else if (nSize == 4) {
             quint32 nValue = 0;
 
-            if (g_hProcess) {
-                if (g_ioMode == IOMODE_PROCESS_USER) {
-                    nValue = XProcess::read_uint32(g_hProcess, nAddress);
+            if (m_hProcess) {
+                if (m_ioMode == IOMODE_PROCESS_USER) {
+                    nValue = XProcess::read_uint32(m_hProcess, nAddress);
                 }
 #ifdef Q_OS_WIN
-                else if (g_ioMode == IOMODE_PROCESS_KERNEL) {
-                    nValue = XWinIODriver::read_uint32(g_hDriver, g_hProcess, nAddress);
+                else if (m_ioMode == IOMODE_PROCESS_KERNEL) {
+                    nValue = XWinIODriver::read_uint32(m_hDriver, m_hProcess, nAddress);
                 }
 #endif
-            } else if (g_pBinary) {
-                if (g_ioMode == IOMODE_DEVICE) {
-                    nValue = g_pBinary->read_uint32(nAddress);
+            } else if (m_pBinary) {
+                if (m_ioMode == IOMODE_DEVICE) {
+                    nValue = m_pBinary->read_uint32(nAddress);
                 }
             }
 
@@ -425,18 +425,18 @@ QString XDynStructsEngine::getValue(quint64 nAddress, quint64 nSize, RECORDTYPE 
         } else if (nSize == 8) {
             quint64 nValue = 0;
 
-            if (g_hProcess) {
-                if (g_ioMode == IOMODE_PROCESS_USER) {
-                    nValue = XProcess::read_uint64(g_hProcess, nAddress);
+            if (m_hProcess) {
+                if (m_ioMode == IOMODE_PROCESS_USER) {
+                    nValue = XProcess::read_uint64(m_hProcess, nAddress);
                 }
 #ifdef Q_OS_WIN
-                else if (g_ioMode == IOMODE_PROCESS_KERNEL) {
-                    nValue = XWinIODriver::read_uint64(g_hDriver, g_hProcess, nAddress);
+                else if (m_ioMode == IOMODE_PROCESS_KERNEL) {
+                    nValue = XWinIODriver::read_uint64(m_hDriver, m_hProcess, nAddress);
                 }
 #endif
-            } else if (g_pBinary) {
-                if (g_ioMode == IOMODE_DEVICE) {
-                    nValue = g_pBinary->read_uint64(nAddress);
+            } else if (m_pBinary) {
+                if (m_ioMode == IOMODE_DEVICE) {
+                    nValue = m_pBinary->read_uint64(nAddress);
                 }
             }
 
@@ -482,54 +482,54 @@ QString XDynStructsEngine::getComment(quint64 nAddress, QString sStructName, QSt
         quint64 nStringAddress = 0;
         QString sString;
 
-        if (g_hProcess) {
-            nStringSize = XProcess::read_uint16(g_hProcess, nAddress);
+        if (m_hProcess) {
+            nStringSize = XProcess::read_uint16(m_hProcess, nAddress);
 
             if (sizeof(void *) == 8) {
-                if (g_ioMode == IOMODE_PROCESS_USER) {
-                    nStringAddress = XProcess::read_uint64(g_hProcess, nAddress + 8);
+                if (m_ioMode == IOMODE_PROCESS_USER) {
+                    nStringAddress = XProcess::read_uint64(m_hProcess, nAddress + 8);
                 }
 #ifdef Q_OS_WIN
-                else if (g_ioMode == IOMODE_PROCESS_KERNEL) {
-                    nStringAddress = XWinIODriver::read_uint64(g_hDriver, g_hProcess, nAddress + 8);
+                else if (m_ioMode == IOMODE_PROCESS_KERNEL) {
+                    nStringAddress = XWinIODriver::read_uint64(m_hDriver, m_hProcess, nAddress + 8);
                 }
 #endif
             } else {
-                if (g_ioMode == IOMODE_PROCESS_USER) {
-                    nStringAddress = XProcess::read_uint32(g_hProcess, nAddress + 4);
+                if (m_ioMode == IOMODE_PROCESS_USER) {
+                    nStringAddress = XProcess::read_uint32(m_hProcess, nAddress + 4);
                 }
 #ifdef Q_OS_WIN
-                else if (g_ioMode == IOMODE_PROCESS_KERNEL) {
-                    nStringAddress = XWinIODriver::read_uint32(g_hDriver, g_hProcess, nAddress + 4);
+                else if (m_ioMode == IOMODE_PROCESS_KERNEL) {
+                    nStringAddress = XWinIODriver::read_uint32(m_hDriver, m_hProcess, nAddress + 4);
                 }
 #endif
             }
-        } else if (g_pBinary) {
-            nStringSize = g_pBinary->read_uint16(nAddress);
+        } else if (m_pBinary) {
+            nStringSize = m_pBinary->read_uint16(nAddress);
 
             if (sizeof(void *) == 8) {
-                if (g_ioMode == IOMODE_DEVICE) {
-                    nStringAddress = g_pBinary->read_uint64(nAddress + 8);
+                if (m_ioMode == IOMODE_DEVICE) {
+                    nStringAddress = m_pBinary->read_uint64(nAddress + 8);
                 }
             } else {
-                if (g_ioMode == IOMODE_DEVICE) {
-                    nStringAddress = g_pBinary->read_uint32(nAddress + 4);
+                if (m_ioMode == IOMODE_DEVICE) {
+                    nStringAddress = m_pBinary->read_uint32(nAddress + 4);
                 }
             }
         }
 
-        if (g_hProcess) {
-            if (g_ioMode == IOMODE_PROCESS_USER) {
-                sString = XProcess::read_unicodeString(g_hProcess, nStringAddress, nStringSize);
+        if (m_hProcess) {
+            if (m_ioMode == IOMODE_PROCESS_USER) {
+                sString = XProcess::read_unicodeString(m_hProcess, nStringAddress, nStringSize);
             }
 #ifdef Q_OS_WIN
-            else if (g_ioMode == IOMODE_PROCESS_KERNEL) {
-                sString = XWinIODriver::read_unicodeString(g_hDriver, g_hProcess, nStringAddress, nStringSize);
+            else if (m_ioMode == IOMODE_PROCESS_KERNEL) {
+                sString = XWinIODriver::read_unicodeString(m_hDriver, m_hProcess, nStringAddress, nStringSize);
             }
 #endif
-        } else if (g_pBinary) {
-            if (g_ioMode == IOMODE_DEVICE) {
-                sString = g_pBinary->read_unicodeString(nStringAddress, nStringSize);
+        } else if (m_pBinary) {
+            if (m_ioMode == IOMODE_DEVICE) {
+                sString = m_pBinary->read_unicodeString(nStringAddress, nStringSize);
             }
         }
 
@@ -567,11 +567,11 @@ XDynStructsEngine::DYNSTRUCT XDynStructsEngine::getDynStructByName(QString sName
     DYNSTRUCT result = {};
 
     if (sName != "") {
-        qint32 nNumberOfStructs = g_listDynStructs.count();
+        qint32 nNumberOfStructs = m_listDynStructs.count();
 
         for (qint32 i = 0; i < nNumberOfStructs; i++) {
-            if (g_listDynStructs.at(i).sName == sName) {
-                result = g_listDynStructs.at(i);
+            if (m_listDynStructs.at(i).sName == sName) {
+                result = m_listDynStructs.at(i);
 
                 break;
             }
@@ -603,39 +603,39 @@ QString XDynStructsEngine::createListEntryLinks(quint64 nAddress, QString sStruc
     quint64 nBlink = 0;
 
     if (sizeof(void *) == 8) {
-        if (g_hProcess) {
-            if (g_ioMode == IOMODE_PROCESS_USER) {
-                nFlink = XProcess::read_uint64(g_hProcess, nAddress);
-                nBlink = XProcess::read_uint64(g_hProcess, nAddress + 8);
+        if (m_hProcess) {
+            if (m_ioMode == IOMODE_PROCESS_USER) {
+                nFlink = XProcess::read_uint64(m_hProcess, nAddress);
+                nBlink = XProcess::read_uint64(m_hProcess, nAddress + 8);
             }
 #ifdef Q_OS_WIN
-            else if (g_ioMode == IOMODE_PROCESS_KERNEL) {
-                nFlink = XWinIODriver::read_uint32(g_hDriver, g_hProcess, nAddress);
-                nBlink = XWinIODriver::read_uint32(g_hDriver, g_hProcess, nAddress + 8);
+            else if (m_ioMode == IOMODE_PROCESS_KERNEL) {
+                nFlink = XWinIODriver::read_uint32(m_hDriver, m_hProcess, nAddress);
+                nBlink = XWinIODriver::read_uint32(m_hDriver, m_hProcess, nAddress + 8);
             }
 #endif
-        } else if (g_pBinary) {
-            if (g_ioMode == IOMODE_DEVICE) {
-                nFlink = g_pBinary->read_uint64(nAddress);
-                nBlink = g_pBinary->read_uint64(nAddress + 8);
+        } else if (m_pBinary) {
+            if (m_ioMode == IOMODE_DEVICE) {
+                nFlink = m_pBinary->read_uint64(nAddress);
+                nBlink = m_pBinary->read_uint64(nAddress + 8);
             }
         }
     } else {
-        if (g_hProcess) {
-            if (g_ioMode == IOMODE_PROCESS_USER) {
-                nFlink = XProcess::read_uint32(g_hProcess, nAddress);
-                nBlink = XProcess::read_uint32(g_hProcess, nAddress + 4);
+        if (m_hProcess) {
+            if (m_ioMode == IOMODE_PROCESS_USER) {
+                nFlink = XProcess::read_uint32(m_hProcess, nAddress);
+                nBlink = XProcess::read_uint32(m_hProcess, nAddress + 4);
             }
 #ifdef Q_OS_WIN
-            else if (g_ioMode == IOMODE_PROCESS_KERNEL) {
-                nFlink = XWinIODriver::read_uint32(g_hDriver, g_hProcess, nAddress);
-                nBlink = XWinIODriver::read_uint32(g_hDriver, g_hProcess, nAddress + 4);
+            else if (m_ioMode == IOMODE_PROCESS_KERNEL) {
+                nFlink = XWinIODriver::read_uint32(m_hDriver, m_hProcess, nAddress);
+                nBlink = XWinIODriver::read_uint32(m_hDriver, m_hProcess, nAddress + 4);
             }
 #endif
-        } else if (g_pBinary) {
-            if (g_ioMode == IOMODE_DEVICE) {
-                nFlink = g_pBinary->read_uint32(nAddress);
-                nBlink = g_pBinary->read_uint32(nAddress + 4);
+        } else if (m_pBinary) {
+            if (m_ioMode == IOMODE_DEVICE) {
+                nFlink = m_pBinary->read_uint32(nAddress);
+                nBlink = m_pBinary->read_uint32(nAddress + 4);
             }
         }
     }
@@ -652,20 +652,20 @@ XIODevice *XDynStructsEngine::createIODevice(quint64 nAddress, quint64 nSize)
 {
     XIODevice *pResult = nullptr;
 
-    if (g_nProcessId) {
-        if (g_ioMode == IOMODE_PROCESS_USER) {
-            pResult = new XProcess(g_nProcessId, nAddress, nSize);
+    if (m_nProcessId) {
+        if (m_ioMode == IOMODE_PROCESS_USER) {
+            pResult = new XProcess(m_nProcessId, nAddress, nSize);
         }
 #ifdef Q_OS_WIN
-        else if (g_ioMode == IOMODE_PROCESS_KERNEL) {
-            QString sServiceName = g_pXOptions->getValue(XOptions::ID_IODRIVER_SERVICENAME).toString();
+        else if (m_ioMode == IOMODE_PROCESS_KERNEL) {
+            QString sServiceName = m_pXOptions->getValue(XOptions::ID_IODRIVER_SERVICENAME).toString();
 
-            pResult = new XWinIODriver(sServiceName, g_nProcessId, nAddress, nSize);
+            pResult = new XWinIODriver(sServiceName, m_nProcessId, nAddress, nSize);
         }
 #endif
-    } else if (g_pDevice) {
-        if (g_ioMode == IOMODE_DEVICE) {
-            pResult = new SubDevice(g_pDevice, nAddress, nSize);
+    } else if (m_pDevice) {
+        if (m_ioMode == IOMODE_DEVICE) {
+            pResult = new SubDevice(m_pDevice, nAddress, nSize);
         }
     }
 
@@ -721,7 +721,7 @@ XDynStructsEngine::INFORECORD XDynStructsEngine::getEPROCESS(qint64 nProcessId)
 {
     INFORECORD result = {};
 
-    QString sValue = "0x" + XBinary::valueToHexOS(XWinIODriver::getEPROCESSAddress(g_hDriver, nProcessId));
+    QString sValue = "0x" + XBinary::valueToHexOS(XWinIODriver::getEPROCESSAddress(m_hDriver, nProcessId));
 
     result.nAddress = -1;
     result.nOffset = -1;
@@ -738,7 +738,7 @@ QList<XDynStructsEngine::INFORECORD> XDynStructsEngine::getKPCRs(qint64 nProcess
 {
     QList<INFORECORD> listResult;
 
-    QList<quint64> listKPCRAddresses = XWinIODriver::getKPCRAddresses(g_hDriver, nProcessId);
+    QList<quint64> listKPCRAddresses = XWinIODriver::getKPCRAddresses(m_hDriver, nProcessId);
 
     qint32 nNumberOfRecords = listKPCRAddresses.count();
 
